@@ -1,0 +1,113 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 28
+    defaultConfig {
+        applicationId "com.fcglibrary.library"
+        minSdkVersion 19
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        flavorDimensions "1"
+        multiDexEnabled true
+
+        manifestPlaceholders = [
+                JPUSH_PKGNAME     : applicationId,
+                JPUSH_APPKEY      : "87ca4b02ae2b74a5ce06972e", //JPush 上注册的包名对应的 Appkey.
+                JPUSH_CHANNEL     : "developer-default", //暂时填写默认值即可.
+                UMENG_APPKEY_VALUE: "5becd904f1f556f0f9000133"//友盟统计
+
+        ]
+
+
+        buildConfigField  "String", "AK", '"AtGlf0AeZaZGVWH9iwFKboyp"'//百度AI AK
+        buildConfigField  "String", "SK", '"Fiq4CgzCxeKzal8VKAxj7DgbzAXoKVkH"'//百度AI SK
+        buildConfigField  "String", "WEB_URL", '"http://10.28.74.39:3000"'//马甲包地址
+        buildConfigField  "String[]", "CHECKVERSION_URL_LIST", 'new String[]{"https://api.wzwqh.com", "https://api.zjschjy.com"}'//开关地址
+        buildConfigField  "String[]", "BLOG_URL_LIST", 'new String[]{"http://blog.sina.com.cn/s/blog_166dde1070102y0m5.html", "https://blog.csdn.net/nikiazhang/article/details/82828263"}'//博客地址
+        buildConfigField  "String", "STAY_UM_KEY", '"5becd904f1f556f0f9000133"'//友盟统计的 KEY
+
+
+
+
+
+        productFlavors {
+            qh360 {
+                buildConfigField "String", "QUDAO", '"ltqh"'
+            }
+            yingyongbao {
+                buildConfigField "String", "QUDAO", '"ltqh"'
+            }
+            huawei {
+                buildConfigField "String", "QUDAO", '"ltqh"'
+            }
+            xiaomi {
+                buildConfigField "String", "QUDAO", '"ltqh"'
+            }
+            oppo {
+                buildConfigField "String", "QUDAO", '"ltqh"'
+            }
+            meizu {
+                buildConfigField "String", "QUDAO", '"ltqh"'
+            }
+            xiaoshichang {
+                buildConfigField "String", "QUDAO", '"ltqh"'
+            }
+        }
+
+        ndk {
+            //选择要添加的对应 cpu 类型的 .so 库。
+            abiFilters 'armeabi', 'armeabi-v7a', 'arm64-v8a', "x86", 'x86_64'
+            // 还可以添加 'x86', 'x86_64', 'mips', 'mips64'
+        }
+        packagingOptions {
+            exclude 'META-INF/LICENSE.txt'
+            exclude 'META-INF/NOTICE.txt'
+        }
+        lintOptions {
+            abortOnError false
+        }
+
+
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    implementation 'com.jakewharton:butterknife:8.8.1'
+    //okgo
+    implementation 'com.lzy.net:okgo:3.0.4'
+    implementation 'com.lzy.net:okserver:1.1.3'
+    implementation 'com.android.support:design:28.0.0'
+    implementation 'com.google.code.gson:gson:2.8.0'
+    //极光
+    implementation 'cn.jiguang.sdk:jpush:3.1.6'
+    // 此处以JPush 3.1.6 版本为例。
+    implementation 'cn.jiguang.sdk:jcore:1.2.5'
+    // 此处以JCore 1.2.5 版本为例。
+    implementation 'org.jsoup:jsoup:1.11.3'
+    //友盟统计
+    implementation 'com.umeng.sdk:common:latest.integration'
+    implementation 'com.umeng.sdk:analytics:latest.integration'
+
+
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.2'
+    implementation 'io.reactivex.rxjava2:rxandroid:2.1.0'
+    implementation 'com.android.support:multidex:1.0.1'
+
+
+    implementation 'com.android.support:multidex:1.0.3'
+    implementation project(':switchlibrary-master')
+}
