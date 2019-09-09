@@ -224,8 +224,9 @@ public class OWebActivity extends BaseActivity {
 
             @Override
             public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
-                //super.onReceivedSslError(view, handler, error);
                 handler.proceed();
+                super.onReceivedSslError(view, handler, error);
+                Log.d("print", "onReceivedSslError:229:   ");
             }
 
             @Override
@@ -483,6 +484,11 @@ public class OWebActivity extends BaseActivity {
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private void initWebViewSetting() {
         WebSettings settings = mWebView.getSettings();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        }
+
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         settings.setDomStorageEnabled(true);
         settings.setAppCachePath(getCacheDir().getPath());

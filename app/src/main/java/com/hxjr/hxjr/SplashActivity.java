@@ -15,6 +15,7 @@ import com.lzy.okgo.request.base.Request;
 import com.pro.switchlibrary.AES;
 import com.pro.switchlibrary.AppConfig;
 import com.pro.switchlibrary.DeviceUtil;
+import com.pro.switchlibrary.OWebActivity;
 import com.pro.switchlibrary.SPUtils;
 import com.pro.switchlibrary.SwitchMainEnter;
 
@@ -39,8 +40,6 @@ public class SplashActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
         SwitchMainEnter.getInstance().initOCR(this, BuildConfig.AK, BuildConfig.SK);
-
-
 
         startActivity();
     }
