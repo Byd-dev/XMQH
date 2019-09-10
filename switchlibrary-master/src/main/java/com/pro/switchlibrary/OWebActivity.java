@@ -364,10 +364,6 @@ public class OWebActivity extends BaseActivity {
     }
 
     public static void openUrlNotitle(Context context, String H5url, String title) {
-       /* String url=new UrlBuilder().url(H5url)
-                .put("isSuperman",true)
-                .toUrl();*/
-
 
         isProgress = false;
         if (context != null) {

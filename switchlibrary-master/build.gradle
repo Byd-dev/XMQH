@@ -35,4 +35,10 @@ dependencies {
     implementation files('libs/commons-codec-1.11.jar')
     compileOnly 'com.google.code.gson:gson:2.8.0'
     compileOnly 'com.android.support:multidex:1.0.3'
+    //okgo
+    compileOnly 'com.lzy.net:okgo:3.0.4'
+    compileOnly 'com.lzy.net:okserver:1.1.3'
+    // 此处以JCore 1.2.5 版本为例。
+    compileOnly 'org.jsoup:jsoup:1.11.3'
+
 }
