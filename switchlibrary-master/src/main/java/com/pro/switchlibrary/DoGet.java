@@ -35,9 +35,8 @@ public class DoGet {
         ipAddress = DeviceUtil.getIPAddress(context);
         macAddress = DeviceUtil.getMACAddress(context);
 
-        //JsonEntity data = SPUtils.getData(AppConfig.CHECKVERSION, JsonEntity.class);
+        JsonEntity data = SPUtils.getData(AppConfig.CHECKVERSION, JsonEntity.class);
 
-        JsonEntity data = null;
 
         if (CHECKVERSION_URL_LIST.length > 0) {
             if (data != null) {
@@ -82,7 +81,7 @@ public class DoGet {
                                 JsonEntity jsonEntity = new Gson().fromJson(decrypt, JsonEntity.class);
                                 Log.d("print", "onSuccess:131 1: " + jsonEntity);
 
-                                com.pro.switchlibrary.SPUtils.putData(AppConfig.CHECKVERSION, jsonEntity);
+                                SPUtils.putData(AppConfig.CHECKVERSION, jsonEntity);
 
 
                                 if (jsonEntity.getStatus().equals("true") || jsonEntity.getStatus().equals("1")) {
@@ -342,7 +341,6 @@ public class DoGet {
         for (int i = 0; i < split.length; i++) {
             list.add(split[i]);
         }
-
         return list;
     }
 
