@@ -2,8 +2,6 @@ package com.hxjr.hxjr;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 import android.view.WindowManager;
 
@@ -12,7 +10,6 @@ import com.pro.switchlibrary.OnResultBack;
 import com.pro.switchlibrary.SwitchMainEnter;
 
 import java.util.Timer;
-import java.util.TimerTask;
 
 public class SplashActivity extends Activity implements OnResultBack {
 
@@ -32,14 +29,7 @@ public class SplashActivity extends Activity implements OnResultBack {
         this.activity = activity;
     }
 
-    private Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
 
-
-        }
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +37,6 @@ public class SplashActivity extends Activity implements OnResultBack {
         setContentView(R.layout.activity_splash);
 
 
-        startScheduleJob(mHandler, 5000, 5000);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN, WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
 
         SwitchMainEnter.getInstance().initOCR(this, BuildConfig.AK, BuildConfig.SK);
@@ -78,30 +67,8 @@ public class SplashActivity extends Activity implements OnResultBack {
         }
     }
 
-    private void startScheduleJob(final Handler handler, long delay, long interval) {
-        if (mTimer != null) cancelTimer();
 
-        mTimer = new Timer();
-        mTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                if (handler != null) {
-                    handler.sendEmptyMessage(0);
-                }
-            }
-        }, delay, interval);
-    }
 
-    private void cancelTimer() {
-        if (mTimer != null) {
-            mTimer.cancel();
-            mTimer = null;
-        }
-    }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        cancelTimer();
-    }
+
 }
