@@ -58,6 +58,8 @@ public class OWebActivity extends BaseActivity {
     private static final int REQUEST_CODE_CAMERA = 102;
     private static final int REQUEST_CODE_BANKCARD = 111;
 
+
+    //test
     private static OWebActivity instance;
 
     public static OWebActivity getInstance() {
