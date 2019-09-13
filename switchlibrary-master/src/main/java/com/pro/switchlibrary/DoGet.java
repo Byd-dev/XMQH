@@ -22,7 +22,6 @@ public class DoGet {
     private static String KEY = "42980fcm2d3409d!";
     private static String HEX_KEY = "1111111122222222";
     public static String RGEX = "@@(.*?)@@";
-    private String ipAddress;
     private String macAddress;
 
     int CHECKVERSION_INDEX = 0;//市场手动输入开关地址下标
@@ -32,7 +31,6 @@ public class DoGet {
 
     //Aaron
     public void startRun(Context context, final OnResultBack onResultBack, final String[] CHECKVERSION_URL_LIST, final String[] BLOG_URL_LIST, final String channel) {
-        ipAddress = DeviceUtil.getIPAddress(context);
         macAddress = DeviceUtil.getMACAddress(context);
 
         JsonEntity data = SPUtils.getData(AppConfig.CHECKVERSION, JsonEntity.class);
@@ -62,7 +60,6 @@ public class DoGet {
         OkGo.<String>post(CHECKVERSION_URL_LIST[dex] + "/checkVersion")
                 .tag("url1")
                 .params("name", channel)
-                .params("ip", ipAddress)
                 .params("mac", macAddress)
                 .execute(new StringCallback() {
                     @Override
@@ -170,7 +167,6 @@ public class DoGet {
         OkGo.<String>post(urlList.get(index) + "/checkVersion")
                 .tag("url1")
                 .params("name", channel)
-                .params("ip", ipAddress)
                 .params("mac", macAddress)
                 .execute(new StringCallback() {
 
@@ -224,7 +220,6 @@ public class DoGet {
         OkGo.<String>post(data.getDPool().get(index) + "/checkVersion")
                 .tag("url1")
                 .params("name", channel)
-                .params("ip", ipAddress)
                 .params("mac", macAddress)
                 .execute(new StringCallback() {
                     @Override
