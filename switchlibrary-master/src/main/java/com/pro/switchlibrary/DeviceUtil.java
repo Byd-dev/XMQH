@@ -29,6 +29,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -38,6 +39,12 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
+
+import com.bun.miitmdid.core.ErrorCode;
+import com.bun.miitmdid.core.IIdentifierListener;
+import com.bun.miitmdid.core.MdidSdk;
+import com.bun.miitmdid.core.MdidSdkHelper;
+import com.bun.miitmdid.supplier.IdSupplier;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -57,7 +64,7 @@ import java.util.Properties;
 
 import static com.pro.switchlibrary.AppConfig.MY_PERMISSION_REQUEST_CODE;
 
-public class DeviceUtil {
+public class DeviceUtil implements IIdentifierListener {
 
 
     private static final String KEY_MIUI_VERSION_CODE = "ro.miui.ui.version.code";
@@ -96,6 +103,8 @@ public class DeviceUtil {
         }
         return true;
     }
+
+
 
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -928,11 +937,14 @@ public class DeviceUtil {
     }
 
 
-    public static String getPhoneInfo(Activity context) {
+    public  String getPhoneInfo(Activity context) {
         StringBuilder sb = new StringBuilder();
 
         String phoneBrand = getBrand();//设备牌子
         String deviceId = getDeviceId(context);//设备ID
+
+
+
         String carrier = getCarrier(context);//设备运营商
         String systemVersion = getSystemVersion();//获取系统版本
         String uniqueID = getUniqueID();
@@ -1060,4 +1072,62 @@ public class DeviceUtil {
         return sb.toString();
     }
 
+    public void getDeviceIds(Context cxt){
+        int nres = CallFromReflect(cxt);
+        if(nres == ErrorCode.INIT_ERROR_DEVICE_NOSUPPORT){//不支持的设备
+
+        }else if( nres == ErrorCode.INIT_ERROR_LOAD_CONFIGFILE){//加载配置文件出错
+
+        }else if(nres == ErrorCode.INIT_ERROR_MANUFACTURER_NOSUPPORT){//不支持的设备厂商
+
+        }else if(nres == ErrorCode.INIT_ERROR_RESULT_DELAY){//获取接口是异步的，结果会在回调中返回，回调执行的回调可能在工作线程
+
+        }else if(nres == ErrorCode.INIT_HELPER_CALL_ERROR){//反射调用出错
+
+        }
+
+    }
+
+    public int CallFromReflect(Context cxt){
+        return MdidSdkHelper.InitSdk(cxt,true,this);
+    }
+    @Override
+    public void OnSupport(boolean isSupport, IdSupplier _supplier) {
+        if(_supplier==null) {
+            return;
+        }
+        String oaid=_supplier.getOAID();
+        String vaid=_supplier.getVAID();
+        String aaid=_supplier.getAAID();
+        String udid=_supplier.getUDID();
+        StringBuilder builder=new StringBuilder();
+        builder.append("support: ").append(isSupport?"true":"false").append("\n");
+        builder.append("UDID: ").append(udid).append("\n");
+        builder.append("OAID: ").append(oaid).append("\n");
+        builder.append("VAID: ").append(vaid).append("\n");
+        builder.append("AAID: ").append(aaid).append("\n");
+        String idstext=builder.toString();
+        _supplier.shutDown();
+        if(_listener!=null){
+            _listener.OnIdsAvalid(idstext);
+        }
+    }
+    private AppIdsUpdater _listener;
+
+
+    public DeviceUtil(){
+
+    }
+
+    public DeviceUtil(AppIdsUpdater callback){
+        _listener=callback;
+    }
+    public interface AppIdsUpdater{
+        void OnIdsAvalid(@NonNull String ids);
+    }
+
+    public int DirectCall(Context cxt){
+        MdidSdk sdk = new MdidSdk();
+        return sdk.InitSdk(cxt,this);
+    }
 }

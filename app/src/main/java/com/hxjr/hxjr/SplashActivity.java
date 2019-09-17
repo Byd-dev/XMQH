@@ -9,14 +9,11 @@ import com.pro.switchlibrary.DoGet;
 import com.pro.switchlibrary.OnResultBack;
 import com.pro.switchlibrary.SwitchMainEnter;
 
-import java.util.Timer;
-
 public class SplashActivity extends Activity implements OnResultBack {
 
     private Activity activity;
 
     private DoGet doGet;
-    private Timer mTimer;
 
     //这个要有 不然会报 没有无参方法的bug
     public SplashActivity() {
@@ -36,10 +33,12 @@ public class SplashActivity extends Activity implements OnResultBack {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
+        SwitchMainEnter.getInstance().initOCR(this, BuildConfig.AK, BuildConfig.SK);
+
+
 
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN, WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
 
-        SwitchMainEnter.getInstance().initOCR(this, BuildConfig.AK, BuildConfig.SK);
 
         SplashActivity splashActivity = new SplashActivity(new DoGet(), SplashActivity.this);
 
@@ -64,11 +63,9 @@ public class SplashActivity extends Activity implements OnResultBack {
         } else if (result == false) {
             SwitchMainEnter.getInstance().goToWeb(activity, BuildConfig.WEB_URL, null);
             activity.finish();
+
         }
     }
-
-
-
 
 
 }

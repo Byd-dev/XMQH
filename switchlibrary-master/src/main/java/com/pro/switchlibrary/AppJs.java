@@ -34,6 +34,8 @@ public class AppJs {
     }
 
 
+
+
     /**
      * 打开Android手机应用市场，让用户对app进行下载
      *
@@ -65,7 +67,9 @@ public class AppJs {
 
     @JavascriptInterface
     public String GetDeviceInfo() {
-        String phoneInfo = DeviceUtil.getPhoneInfo(activity);
+        String phoneInfo = new DeviceUtil().getPhoneInfo(activity);
+
+        //String phoneInfo = DeviceUtil.getPhoneInfo(activity);
         Log.d(TAG, "GetDeviceInfo:68:  " + phoneInfo);
         return phoneInfo;
     }

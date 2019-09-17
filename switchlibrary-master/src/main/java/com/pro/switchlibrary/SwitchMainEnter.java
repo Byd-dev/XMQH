@@ -6,31 +6,16 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
-import android.text.TextUtils;
+import android.support.annotation.NonNull;
 import android.util.Log;
-import android.view.WindowManager;
-import android.widget.Toast;
 
 import com.baidu.ocr.sdk.OCR;
 import com.baidu.ocr.sdk.OnResultListener;
 import com.baidu.ocr.sdk.exception.OCRError;
 import com.baidu.ocr.sdk.model.AccessToken;
-import com.google.gson.Gson;
-import com.lzy.okgo.OkGo;
-import com.lzy.okgo.callback.StringCallback;
-import com.lzy.okgo.request.base.Request;
+import com.bun.miitmdid.core.JLibrary;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-public class SwitchMainEnter {
+public class SwitchMainEnter implements DeviceUtil.AppIdsUpdater {
 
     private static SwitchMainEnter instance;
 
@@ -45,6 +30,14 @@ public class SwitchMainEnter {
 
     public void initOCR(Context context, String AK, String SK) {
         SPUtils.init(context);
+        JLibrary.InitEntry(context);
+
+
+        int i = new DeviceUtil(this).DirectCall(context);
+        if (i==0){
+            new DeviceUtil(this).getDeviceIds(context);
+        }
+
         OCR.getInstance(context).initAccessTokenWithAkSk(new OnResultListener<AccessToken>() {
             @Override
             public void onResult(AccessToken accessToken) {
@@ -88,7 +81,8 @@ public class SwitchMainEnter {
     }
 
 
-
-
-
+    @Override
+    public void OnIdsAvalid(@NonNull String ids) {
+        Log.d("print", "OnIdsAvalid: 83" + ids);
+    }
 }
