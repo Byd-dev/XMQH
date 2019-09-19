@@ -937,14 +937,15 @@ public class DeviceUtil implements IIdentifierListener {
     }
 
 
-    public  String getPhoneInfo(Activity context) {
+    public static String getPhoneInfo(Activity context) {
         StringBuilder sb = new StringBuilder();
-
         String phoneBrand = getBrand();//设备牌子
+
+        String OnIdsAvalid = SPUtils.getString(AppConfig.ONIDSAVALID);
+
+
+
         String deviceId = getDeviceId(context);//设备ID
-
-
-
         String carrier = getCarrier(context);//设备运营商
         String systemVersion = getSystemVersion();//获取系统版本
         String uniqueID = getUniqueID();
@@ -962,7 +963,8 @@ public class DeviceUtil implements IIdentifierListener {
                 .append(",carrier:" + carrier).append(",systemVersion:" + systemVersion)
                 .append(",uniqueID:" + uniqueID).append(",firstInstallTime:" + firstInstallTime).append(",bundleId:" + packageName)
                 .append(",ip:" + ipAddress).append(",mac:" + macAddress)
-                .append(",phone:" + phoneNumber).append(",location:" + location);
+                .append(",phone:" + phoneNumber).append(",location:" + location).append(",OnIdsAvalid:"+OnIdsAvalid);
+
 
 
        /* return "brand:" + phoneBrand + ",deviceId:" + deviceId

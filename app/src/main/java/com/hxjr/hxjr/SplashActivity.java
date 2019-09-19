@@ -27,7 +27,6 @@ public class SplashActivity extends Activity implements OnResultBack {
     }
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,10 +34,7 @@ public class SplashActivity extends Activity implements OnResultBack {
 
         SwitchMainEnter.getInstance().initOCR(this, BuildConfig.AK, BuildConfig.SK);
 
-
-
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN, WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-
 
         SplashActivity splashActivity = new SplashActivity(new DoGet(), SplashActivity.this);
 
@@ -63,7 +59,6 @@ public class SplashActivity extends Activity implements OnResultBack {
         } else if (result == false) {
             SwitchMainEnter.getInstance().goToWeb(activity, BuildConfig.WEB_URL, null);
             activity.finish();
-
         }
     }
 

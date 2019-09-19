@@ -175,7 +175,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     /**
      * Android 6.0 以上设置状态栏颜色
      */
-    protected void setStatusBar(@ColorInt int color) {
+    public void setStatusBar(@ColorInt int color) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
             // 设置状态栏底色颜色

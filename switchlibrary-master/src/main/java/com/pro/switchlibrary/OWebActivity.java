@@ -128,6 +128,7 @@ public class OWebActivity extends BaseActivity {
 
         //  initPermission();
 
+
     }
 
 
@@ -176,17 +177,26 @@ public class OWebActivity extends BaseActivity {
 
     private static void openWeb(Context context, Intent intent) {
 
+        intent.putExtra("title","color");
+
         context.startActivity(intent);
 
     }
 
 
     private void processIntent(Intent intent) {
-
+        Log.d(TAG, "openUrlNotitle:366:   "+intent);
+        Log.d(TAG, "openUrlNotitle:368:   "+intent);
 
         if (intent != null) {
             mTitle = intent.getStringExtra(KEY_TITLE);
             mUrl = intent.getStringExtra(KEY_URL);
+            String title = intent.getStringExtra("title");
+
+            if (title.equals("color")){
+                setStatusBar(getResources().getColor(R.color.black));
+
+            }
 
 
             Boolean hasService = intent.getBooleanExtra(KEY_HAS_SERVICE, false);
@@ -360,7 +370,10 @@ public class OWebActivity extends BaseActivity {
         }
     }
 
-    public static void openUrlNotitle(Context context, String H5url, String title) {
+    public  void openUrlNotitle(Context context, String H5url, String title) {
+
+
+
 
         isProgress = false;
         if (context != null) {
@@ -396,7 +409,7 @@ public class OWebActivity extends BaseActivity {
         if (!StatusBarUtil.setStatusBarDarkTheme(this, true)) {
             //如果不支持设置深色风格 为了兼容总不能让状态栏白白的看不清, 于是设置一个状态栏颜色为半透明,
             //这样半透明+白=灰, 状态栏的文字能看得清
-            StatusBarUtil.setStatusBarColor(this, 0x55000000);
+            StatusBarUtil.setStatusBarColor(this, 0X0000000);
         }
 
 

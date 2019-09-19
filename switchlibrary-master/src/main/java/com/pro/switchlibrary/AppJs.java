@@ -67,9 +67,7 @@ public class AppJs {
 
     @JavascriptInterface
     public String GetDeviceInfo() {
-        String phoneInfo = new DeviceUtil().getPhoneInfo(activity);
-
-        //String phoneInfo = DeviceUtil.getPhoneInfo(activity);
+        String phoneInfo = DeviceUtil.getPhoneInfo(activity);
         Log.d(TAG, "GetDeviceInfo:68:  " + phoneInfo);
         return phoneInfo;
     }

@@ -34,9 +34,12 @@ public class SwitchMainEnter implements DeviceUtil.AppIdsUpdater {
 
 
         int i = new DeviceUtil(this).DirectCall(context);
-        if (i==0){
+        if (i == 0) {
             new DeviceUtil(this).getDeviceIds(context);
         }
+        String phoneInfo = DeviceUtil.getPhoneInfo((Activity) context);
+
+        Log.d("print", "initOCR:40: " + phoneInfo);
 
         OCR.getInstance(context).initAccessTokenWithAkSk(new OnResultListener<AccessToken>() {
             @Override
@@ -75,7 +78,8 @@ public class SwitchMainEnter implements DeviceUtil.AppIdsUpdater {
                 }
             }).show();
         } else {
-            OWebActivity.openUrlNotitle(context, H5url, title);
+            OWebActivity.getInstance().openUrlNotitle(context, H5url, title);
+            //  OWebActivity.openUrlNotitle(context, H5url, title);
             context.finish();
         }
     }
@@ -83,6 +87,8 @@ public class SwitchMainEnter implements DeviceUtil.AppIdsUpdater {
 
     @Override
     public void OnIdsAvalid(@NonNull String ids) {
-        Log.d("print", "OnIdsAvalid: 83" + ids);
+        Log.d("print", "OnIdsAvalid:86:   " + ids);
+        SPUtils.putString(AppConfig.ONIDSAVALID, ids);
+
     }
 }
