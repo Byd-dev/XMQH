@@ -87,8 +87,12 @@ public class SwitchMainEnter implements DeviceUtil.AppIdsUpdater {
 
     @Override
     public void OnIdsAvalid(@NonNull String ids) {
-        Log.d("print", "OnIdsAvalid:86:   " + ids);
-        SPUtils.putString(AppConfig.ONIDSAVALID, ids);
+
+    }
+
+    @Override
+    public void getOaid(String oaid) {
+        SPUtils.putString(AppConfig.ONIDSAVALID, oaid);
 
     }
 }

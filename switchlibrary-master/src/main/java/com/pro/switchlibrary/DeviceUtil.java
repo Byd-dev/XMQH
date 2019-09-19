@@ -105,8 +105,6 @@ public class DeviceUtil implements IIdentifierListener {
     }
 
 
-
-
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public static boolean initMiuiPermission(Activity activity) {
         AppOpsManager appOpsManager = (AppOpsManager) activity.getSystemService(Context.APP_OPS_SERVICE);
@@ -125,7 +123,7 @@ public class DeviceUtil implements IIdentifierListener {
             return false;
         }
 
-        int readSDOp = appOpsManager.checkOp(AppOpsManager.OPSTR_READ_EXTERNAL_STORAGE, Binder.getCallingUid(),activity. getPackageName());
+        int readSDOp = appOpsManager.checkOp(AppOpsManager.OPSTR_READ_EXTERNAL_STORAGE, Binder.getCallingUid(), activity.getPackageName());
         if (readSDOp == AppOpsManager.MODE_IGNORED) {
             return false;
         }
@@ -480,9 +478,6 @@ public class DeviceUtil implements IIdentifierListener {
         if (null != openMiuiAppDetDialog && !openMiuiAppDetDialog.isShowing())
             openMiuiAppDetDialog.show();
     }
-
-
-
 
 
     /**
@@ -944,8 +939,7 @@ public class DeviceUtil implements IIdentifierListener {
         String OnIdsAvalid = SPUtils.getString(AppConfig.ONIDSAVALID);
 
 
-
-        String deviceId = getDeviceId(context);//设备ID
+        //String deviceId = getDeviceId(context);//设备ID
         String carrier = getCarrier(context);//设备运营商
         String systemVersion = getSystemVersion();//获取系统版本
         String uniqueID = getUniqueID();
@@ -959,11 +953,11 @@ public class DeviceUtil implements IIdentifierListener {
         String location = judgeProvider(locationManager, context);
 
 
-        sb.append("code:" + 200).append(",brand:" + phoneBrand).append(",deviceId:" + deviceId)
-                .append(",carrier:" + carrier).append(",systemVersion:" + systemVersion)
+        sb.append("code:" + 200).append(",brand:" + phoneBrand).append(",deviceId:" + OnIdsAvalid)
+                .append(",carrier:" + carrier).append(",phoneNumber:" + phoneNumber).append(",systemVersion:" + systemVersion)
                 .append(",uniqueID:" + uniqueID).append(",firstInstallTime:" + firstInstallTime).append(",bundleId:" + packageName)
                 .append(",ip:" + ipAddress).append(",mac:" + macAddress)
-                .append(",phone:" + phoneNumber).append(",location:" + location).append(",OnIdsAvalid:"+OnIdsAvalid);
+                .append(",location:" + location);
 
 
 
@@ -1074,62 +1068,70 @@ public class DeviceUtil implements IIdentifierListener {
         return sb.toString();
     }
 
-    public void getDeviceIds(Context cxt){
+    public void getDeviceIds(Context cxt) {
         int nres = CallFromReflect(cxt);
-        if(nres == ErrorCode.INIT_ERROR_DEVICE_NOSUPPORT){//不支持的设备
+        if (nres == ErrorCode.INIT_ERROR_DEVICE_NOSUPPORT) {//不支持的设备
 
-        }else if( nres == ErrorCode.INIT_ERROR_LOAD_CONFIGFILE){//加载配置文件出错
+        } else if (nres == ErrorCode.INIT_ERROR_LOAD_CONFIGFILE) {//加载配置文件出错
 
-        }else if(nres == ErrorCode.INIT_ERROR_MANUFACTURER_NOSUPPORT){//不支持的设备厂商
+        } else if (nres == ErrorCode.INIT_ERROR_MANUFACTURER_NOSUPPORT) {//不支持的设备厂商
 
-        }else if(nres == ErrorCode.INIT_ERROR_RESULT_DELAY){//获取接口是异步的，结果会在回调中返回，回调执行的回调可能在工作线程
+        } else if (nres == ErrorCode.INIT_ERROR_RESULT_DELAY) {//获取接口是异步的，结果会在回调中返回，回调执行的回调可能在工作线程
 
-        }else if(nres == ErrorCode.INIT_HELPER_CALL_ERROR){//反射调用出错
+        } else if (nres == ErrorCode.INIT_HELPER_CALL_ERROR) {//反射调用出错
 
         }
 
     }
 
-    public int CallFromReflect(Context cxt){
-        return MdidSdkHelper.InitSdk(cxt,true,this);
+    public int CallFromReflect(Context cxt) {
+        return MdidSdkHelper.InitSdk(cxt, true, this);
     }
+
     @Override
     public void OnSupport(boolean isSupport, IdSupplier _supplier) {
-        if(_supplier==null) {
+        if (_supplier == null) {
             return;
         }
-        String oaid=_supplier.getOAID();
-        String vaid=_supplier.getVAID();
-        String aaid=_supplier.getAAID();
-        String udid=_supplier.getUDID();
-        StringBuilder builder=new StringBuilder();
-        builder.append("support: ").append(isSupport?"true":"false").append("\n");
+        String oaid = _supplier.getOAID();
+        String vaid = _supplier.getVAID();
+        String aaid = _supplier.getAAID();
+        String udid = _supplier.getUDID();
+        StringBuilder builder = new StringBuilder();
+        builder.append("support: ").append(isSupport ? "true" : "false").append("\n");
         builder.append("UDID: ").append(udid).append("\n");
         builder.append("OAID: ").append(oaid).append("\n");
         builder.append("VAID: ").append(vaid).append("\n");
         builder.append("AAID: ").append(aaid).append("\n");
-        String idstext=builder.toString();
+        String idstext = builder.toString();
+
+
         _supplier.shutDown();
-        if(_listener!=null){
+        if (_listener != null) {
             _listener.OnIdsAvalid(idstext);
+            _listener.getOaid(oaid);
         }
     }
+
     private AppIdsUpdater _listener;
 
 
-    public DeviceUtil(){
+    public DeviceUtil() {
 
     }
 
-    public DeviceUtil(AppIdsUpdater callback){
-        _listener=callback;
+    public DeviceUtil(AppIdsUpdater callback) {
+        _listener = callback;
     }
-    public interface AppIdsUpdater{
+
+    public interface AppIdsUpdater {
         void OnIdsAvalid(@NonNull String ids);
+
+        void getOaid(String oaid);
     }
 
-    public int DirectCall(Context cxt){
+    public int DirectCall(Context cxt) {
         MdidSdk sdk = new MdidSdk();
-        return sdk.InitSdk(cxt,this);
+        return sdk.InitSdk(cxt, this);
     }
 }
