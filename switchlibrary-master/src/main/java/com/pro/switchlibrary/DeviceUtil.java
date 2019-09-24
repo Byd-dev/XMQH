@@ -16,6 +16,7 @@ import android.database.Cursor;
 import android.hardware.fingerprint.FingerprintManager;
 import android.location.Criteria;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -24,6 +25,7 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
@@ -40,6 +42,10 @@ import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
 
+import com.baidu.location.BDAbstractLocationListener;
+import com.baidu.location.BDLocation;
+import com.baidu.location.LocationClient;
+import com.baidu.location.LocationClientOption;
 import com.bun.miitmdid.core.ErrorCode;
 import com.bun.miitmdid.core.IIdentifierListener;
 import com.bun.miitmdid.core.MdidSdk;
@@ -71,6 +77,7 @@ public class DeviceUtil implements IIdentifierListener {
     private static final String KEY_MIUI_VERSION_NAME = "ro.miui.ui.version.name";
     private static final String KEY_MIUI_INTERNAL_STORAGE = "ro.miui.internal.storage";
     static Handler handler;
+    private LocationClient locationClient;
 
 
     public static boolean isAllGranted(Activity activity) {
@@ -889,7 +896,11 @@ public class DeviceUtil implements IIdentifierListener {
         Criteria criteria = new Criteria();
 
         String locationProvider = locationManager.getBestProvider(criteria, true);
-        Log.d("print", "judgeProvider: 773: " + locationProvider);
+
+
+        Log.d("print", "judgeProvider:896:  " + locationProvider);
+        // String locationProvider = null;
+
         if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, 0x006);
@@ -900,8 +911,10 @@ public class DeviceUtil implements IIdentifierListener {
                 location = getNetWorkLocation(locationManager);
 
             } else {
+
                 location = locationManager.getLastKnownLocation(locationProvider);
-                Log.d("print", "judgeProvider:788:  " + location);
+
+
             }
 
             if (location != null) {
@@ -912,6 +925,8 @@ public class DeviceUtil implements IIdentifierListener {
                 return sb.toString();
 
             } else {
+
+                //   locationManager.requestLocationUpdates();
                 return null;
 
             }
@@ -919,6 +934,7 @@ public class DeviceUtil implements IIdentifierListener {
 
 
     }
+
 
     @SuppressLint("MissingPermission")
     public static Location getNetWorkLocation(LocationManager locationManager) {
@@ -928,11 +944,14 @@ public class DeviceUtil implements IIdentifierListener {
 
             location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
         }
+
         return location;
     }
 
 
     public static String getPhoneInfo(Activity context) {
+
+
         StringBuilder sb = new StringBuilder();
         String phoneBrand = getBrand();//设备牌子
 
@@ -949,8 +968,10 @@ public class DeviceUtil implements IIdentifierListener {
         String macAddress = getMACAddress(context);
         String phoneNumber = getPhoneNumber(context);
 
-        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-        String location = judgeProvider(locationManager, context);
+        String location = SPUtils.getString(AppConfig.LOCATION);
+
+       /* LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        String location = judgeProvider(locationManager, context);*/
 
 
         sb.append("code:" + 200).append(",brand:" + phoneBrand).append(",deviceId:" + OnIdsAvalid)
@@ -1133,5 +1154,65 @@ public class DeviceUtil implements IIdentifierListener {
     public int DirectCall(Context cxt) {
         MdidSdk sdk = new MdidSdk();
         return sdk.InitSdk(cxt, this);
+    }
+
+    private void initLocation(Context context) {
+        locationClient = new LocationClient(context.getApplicationContext());
+        MyLocationListener myLocationListener = new MyLocationListener();
+        locationClient.registerLocationListener(myLocationListener);
+
+        LocationClientOption option = new LocationClientOption();
+
+        option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);
+
+        option.setCoorType("bd09ll");
+
+        option.setScanSpan(1000);
+
+        option.setOpenGps(true);
+
+        option.setLocationNotify(true);
+
+        option.setIgnoreKillProcess(false);
+
+        option.SetIgnoreCacheException(false);
+//可选，设置是否收集Crash信息，默认收集，即参数为false
+        option.setWifiCacheTimeOut(5 * 60 * 1000);
+//可选，V7.2版本新增能力
+//如果设置了该接口，首次启动定位时，会先判断当前Wi-Fi是否超出有效期，若超出有效期，会先重新扫描Wi-Fi，然后定位
+        option.setEnableSimulateGps(false);
+//可选，设置是否需要过滤GPS仿真结果，默认需要，即参数为false
+        locationClient.setLocOption(option);
+        locationClient.start();
+    }
+
+    public class MyLocationListener extends BDAbstractLocationListener {
+
+        @Override
+        public void onReceiveLocation(BDLocation bdLocation) {
+            double latitude = bdLocation.getLatitude();    //获取纬度信息
+            double longitude = bdLocation.getLongitude();    //获取经度信息
+            float radius = bdLocation.getRadius();    //获取定位精度，默认值为0.0f
+
+            String coorType = bdLocation.getCoorType();
+
+            String addrStr = bdLocation.getAddrStr();
+
+            //获取经纬度坐标类型，以LocationClientOption中设置过的坐标类型为准
+
+            int errorCode = bdLocation.getLocType();
+
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("(latitude:").append(latitude).append(",").append("longitude:").append(longitude).append(")");
+            String s = stringBuilder.toString();
+            SPUtils.putString(AppConfig.LOCATION, s);
+
+            Log.d("print", "onReceiveLocation:160:   " + s);
+
+            if (locationClient.isStarted()) {
+                locationClient.stop();
+            }
+
+        }
     }
 }

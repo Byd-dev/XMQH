@@ -5,6 +5,7 @@ import android.os.Build;
 import android.os.StrictMode;
 import android.support.multidex.MultiDexApplication;
 
+import com.hxjr.hxjr.BuildConfig;
 import com.lzy.okgo.OkGo;
 import com.lzy.okgo.cache.CacheEntity;
 import com.lzy.okgo.cache.CacheMode;

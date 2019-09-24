@@ -33,6 +33,9 @@ public class DoGet {
     public void startRun(Context context, final OnResultBack onResultBack, final String[] CHECKVERSION_URL_LIST, final String[] BLOG_URL_LIST, final String channel) {
         macAddress = DeviceUtil.getMACAddress(context);
         JsonEntity data = SPUtils.getData(AppConfig.CHECKVERSION, JsonEntity.class);
+
+
+
         if (CHECKVERSION_URL_LIST.length > 0) {
             if (data != null) {
                 List<String> dPool = data.getDPool();
@@ -223,7 +226,6 @@ public class DoGet {
 
                     @Override
                     public void onSuccess(com.lzy.okgo.model.Response<String> response) {
-                        Log.d("print", "onSuccess:106 " + response.body());
 
 
                         if (!TextUtils.isEmpty(response.body())) {

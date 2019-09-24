@@ -15,6 +15,9 @@ public class SplashActivity extends Activity implements OnResultBack {
 
     private DoGet doGet;
 
+
+
+
     //这个要有 不然会报 没有无参方法的bug
     public SplashActivity() {
 
@@ -32,7 +35,12 @@ public class SplashActivity extends Activity implements OnResultBack {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
+
+
+
+
         SwitchMainEnter.getInstance().initOCR(this, BuildConfig.AK, BuildConfig.SK);
+
 
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN, WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
 
@@ -42,6 +50,9 @@ public class SplashActivity extends Activity implements OnResultBack {
 
 
     }
+
+
+
 
 
     public void getSwitch(final String[] CHECKVERSION_URL_LIST, final String[] BLOG_URL_LIST, final String channel) {

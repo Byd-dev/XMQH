@@ -16,7 +16,8 @@ android {
                 JPUSH_PKGNAME     : applicationId,
                 JPUSH_APPKEY      : "87ca4b02ae2b74a5ce06972e", //JPush 上注册的包名对应的 Appkey.
                 JPUSH_CHANNEL     : "developer-default", //暂时填写默认值即可.
-                UMENG_APPKEY_VALUE: "5becd904f1f556f0f9000133"//友盟统计
+                UMENG_APPKEY_VALUE: "5becd904f1f556f0f9000133",//友盟统计
+                BAIDU_AK:"OzMhhfVErZU0GSo9M2ynK9LfV6x92and"
 
         ]
 

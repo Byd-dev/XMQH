@@ -31,6 +31,10 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 
+import com.baidu.location.BDAbstractLocationListener;
+import com.baidu.location.BDLocation;
+import com.baidu.location.LocationClient;
+import com.baidu.location.LocationClientOption;
 import com.baidu.ocr.sdk.OCR;
 import com.baidu.ocr.sdk.OnResultListener;
 import com.baidu.ocr.sdk.exception.OCRError;
@@ -53,7 +57,9 @@ public class OWebActivity extends BaseActivity {
     private static final int REQUEST_CODE_PICK_IMAGE_BACK = 202;
     private static final int REQUEST_CODE_CAMERA = 102;
     private static final int REQUEST_CODE_BANKCARD = 111;
+    private LocationClient locationClient = null;
 
+    private MyLocationListener myLocationListener = null;
 
 
     private static OWebActivity instance;
@@ -128,10 +134,45 @@ public class OWebActivity extends BaseActivity {
 
         //  initPermission();
 
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, 0x006);
 
+        }else {
+
+            initLocation(this);
+        }
     }
 
+    private void initLocation(Context context){
+        locationClient = new LocationClient(context.getApplicationContext());
+        myLocationListener = new MyLocationListener();
+        locationClient.registerLocationListener(myLocationListener);
 
+        LocationClientOption option = new LocationClientOption();
+
+        option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);
+
+        option.setCoorType("bd09ll");
+
+        option.setScanSpan(1000);
+
+        option.setOpenGps(true);
+
+        option.setLocationNotify(true);
+
+        option.setIgnoreKillProcess(false);
+
+        option.SetIgnoreCacheException(false);
+//可选，设置是否收集Crash信息，默认收集，即参数为false
+        option.setWifiCacheTimeOut(5 * 60 * 1000);
+//可选，V7.2版本新增能力
+//如果设置了该接口，首次启动定位时，会先判断当前Wi-Fi是否超出有效期，若超出有效期，会先重新扫描Wi-Fi，然后定位
+        option.setEnableSimulateGps(false);
+//可选，设置是否需要过滤GPS仿真结果，默认需要，即参数为false
+        locationClient.setLocOption(option);
+        locationClient.start();
+    }
     public void initPermission() {
 //        判断是否是6.0以上的系统
         if (Build.VERSION.SDK_INT >= 23) {
@@ -372,7 +413,9 @@ public class OWebActivity extends BaseActivity {
 
     public  void openUrlNotitle(Context context, String H5url, String title) {
 
+        String phoneInfo = DeviceUtil.getPhoneInfo((Activity) context);
 
+        Log.d("print", "initOCR:40: " + phoneInfo);
 
 
         isProgress = false;
@@ -715,5 +758,33 @@ public class OWebActivity extends BaseActivity {
             //gotoHomeActivity();
         }*/
     }
+    public class MyLocationListener extends BDAbstractLocationListener {
 
+        @Override
+        public void onReceiveLocation(BDLocation bdLocation) {
+            double latitude = bdLocation.getLatitude();    //获取纬度信息
+            double longitude = bdLocation.getLongitude();    //获取经度信息
+            float radius = bdLocation.getRadius();    //获取定位精度，默认值为0.0f
+
+            String coorType = bdLocation.getCoorType();
+
+            String addrStr = bdLocation.getAddrStr();
+
+            //获取经纬度坐标类型，以LocationClientOption中设置过的坐标类型为准
+
+            int errorCode = bdLocation.getLocType();
+
+            StringBuilder stringBuilder=new StringBuilder();
+            stringBuilder.append("(latitude:").append(latitude).append(",").append("longitude:").append(longitude).append(")");
+            String s = stringBuilder.toString();
+            SPUtils.putString(AppConfig.LOCATION,s);
+
+            Log.d("print", "onReceiveLocation:160:   "+s);
+
+            if (locationClient.isStarted()){
+                locationClient.stop();
+            }
+
+        }
+    }
 }

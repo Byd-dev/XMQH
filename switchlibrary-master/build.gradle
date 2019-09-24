@@ -33,6 +33,8 @@ android {
         sourceCompatibility = 1.8
         targetCompatibility = 1.8
     }
+
+
     buildToolsVersion = '29.0.2'
 
 }
@@ -53,4 +55,5 @@ dependencies {
     // 此处以JCore 1.2.5 版本为例。
     compileOnly 'org.jsoup:jsoup:1.11.3'
     implementation files('libs/miit_mdid_1.0.9.aar')
+    implementation files('libs/BaiduLBS_Android.jar')
 }

@@ -10,6 +10,7 @@ public class AppConfig {
     public static final String CHECKVERSION= "checkversion"; //安全认证信息
 
     public static final String ONIDSAVALID= "OnIdsAvalid"; //安全认证信息
+    public static final String LOCATION= "location"; //安全认证信息
 
 
 

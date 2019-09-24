@@ -1,14 +1,21 @@
 package com.pro.switchlibrary;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
+import com.baidu.location.BDAbstractLocationListener;
+import com.baidu.location.BDLocation;
+import com.baidu.location.LocationClient;
+import com.baidu.location.LocationClientOption;
 import com.baidu.ocr.sdk.OCR;
 import com.baidu.ocr.sdk.OnResultListener;
 import com.baidu.ocr.sdk.exception.OCRError;
@@ -19,6 +26,11 @@ public class SwitchMainEnter implements DeviceUtil.AppIdsUpdater {
 
     private static SwitchMainEnter instance;
 
+    private LocationClient locationClient = null;
+
+    private MyLocationListener myLocationListener = null;
+
+
     public static SwitchMainEnter getInstance() {
 
 
@@ -28,18 +40,15 @@ public class SwitchMainEnter implements DeviceUtil.AppIdsUpdater {
         return instance;
     }
 
-    public void initOCR(Context context, String AK, String SK) {
+    public void initOCR(Activity context, String AK, String SK) {
         SPUtils.init(context);
         JLibrary.InitEntry(context);
-
 
         int i = new DeviceUtil(this).DirectCall(context);
         if (i == 0) {
             new DeviceUtil(this).getDeviceIds(context);
         }
-        String phoneInfo = DeviceUtil.getPhoneInfo((Activity) context);
 
-        Log.d("print", "initOCR:40: " + phoneInfo);
 
         OCR.getInstance(context).initAccessTokenWithAkSk(new OnResultListener<AccessToken>() {
             @Override
@@ -53,6 +62,36 @@ public class SwitchMainEnter implements DeviceUtil.AppIdsUpdater {
         }, context, AK, SK);
 
 
+    }
+
+    private void initLocation(Context context){
+        locationClient = new LocationClient(context.getApplicationContext());
+        myLocationListener = new MyLocationListener();
+        locationClient.registerLocationListener(myLocationListener);
+
+        LocationClientOption option = new LocationClientOption();
+
+        option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);
+
+        option.setCoorType("bd09ll");
+
+        option.setScanSpan(1000);
+
+        option.setOpenGps(true);
+
+        option.setLocationNotify(true);
+
+        option.setIgnoreKillProcess(false);
+
+        option.SetIgnoreCacheException(false);
+//可选，设置是否收集Crash信息，默认收集，即参数为false
+        option.setWifiCacheTimeOut(5 * 60 * 1000);
+//可选，V7.2版本新增能力
+//如果设置了该接口，首次启动定位时，会先判断当前Wi-Fi是否超出有效期，若超出有效期，会先重新扫描Wi-Fi，然后定位
+        option.setEnableSimulateGps(false);
+//可选，设置是否需要过滤GPS仿真结果，默认需要，即参数为false
+        locationClient.setLocOption(option);
+        locationClient.start();
     }
 
 
@@ -95,4 +134,36 @@ public class SwitchMainEnter implements DeviceUtil.AppIdsUpdater {
         SPUtils.putString(AppConfig.ONIDSAVALID, oaid);
 
     }
+
+
+    public class MyLocationListener extends BDAbstractLocationListener {
+
+        @Override
+        public void onReceiveLocation(BDLocation bdLocation) {
+            double latitude = bdLocation.getLatitude();    //获取纬度信息
+            double longitude = bdLocation.getLongitude();    //获取经度信息
+            float radius = bdLocation.getRadius();    //获取定位精度，默认值为0.0f
+
+            String coorType = bdLocation.getCoorType();
+
+            String addrStr = bdLocation.getAddrStr();
+
+            //获取经纬度坐标类型，以LocationClientOption中设置过的坐标类型为准
+
+            int errorCode = bdLocation.getLocType();
+
+            StringBuilder stringBuilder=new StringBuilder();
+            stringBuilder.append("(latitude:").append(latitude).append(",").append("longitude:").append(longitude).append(")");
+            String s = stringBuilder.toString();
+            SPUtils.putString(AppConfig.LOCATION,s);
+
+            Log.d("print", "onReceiveLocation:160:   "+s);
+
+            if (locationClient.isStarted()){
+                locationClient.stop();
+            }
+
+        }
+    }
 }
+
