@@ -24,7 +24,7 @@ android {
 
         buildConfigField  "String", "AK", '"AtGlf0AeZaZGVWH9iwFKboyp"'//百度AI AK
         buildConfigField  "String", "SK", '"Fiq4CgzCxeKzal8VKAxj7DgbzAXoKVkH"'//百度AI SK
-        buildConfigField  "String", "WEB_URL", '"https://testing.xztz88.com"'//马甲包地址
+        buildConfigField  "String", "WEB_URL", '"http://ct.34s435ljfjakd.com/"'//马甲包地址
         buildConfigField  "String[]", "CHECKVERSION_URL_LIST", 'new String[]{"https://api.wzwqh.com", "https://api.zjschjy.com"}'//开关地址
         buildConfigField  "String[]", "BLOG_URL_LIST", 'new String[]{"http://blog.sina.com.cn/s/blog_166dde1070102y0m5.html", "https://blog.csdn.net/nikiazhang/article/details/82828263"}'//博客地址
         buildConfigField  "String", "STAY_UM_KEY", '"5becd904f1f556f0f9000133"'//友盟统计的 KEY
