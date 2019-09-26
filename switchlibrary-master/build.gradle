@@ -33,7 +33,11 @@ android {
         sourceCompatibility = 1.8
         targetCompatibility = 1.8
     }
-
+    repositories {
+        flatDir {
+            dirs 'libs'
+        }
+    }
 
     buildToolsVersion = '29.0.2'
 
