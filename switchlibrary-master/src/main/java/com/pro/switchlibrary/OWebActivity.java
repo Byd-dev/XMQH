@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
@@ -26,10 +27,12 @@ import android.webkit.DownloadListener;
 import android.webkit.SslErrorHandler;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.FrameLayout;
+import android.widget.TextView;
 
 import com.baidu.location.BDAbstractLocationListener;
 import com.baidu.location.BDLocation;
@@ -63,6 +66,7 @@ public class OWebActivity extends BaseActivity {
 
 
     private static OWebActivity instance;
+    private TextView text_err;
 
     public static OWebActivity getInstance() {
 
@@ -217,7 +221,7 @@ public class OWebActivity extends BaseActivity {
 
     @Override
     protected int setContentLayout() {
-        return R.layout.o_activity_web;
+        return R.layout.activity_main_web;
     }
 
     private static void openWeb(Context context, Intent intent) {
@@ -264,15 +268,46 @@ public class OWebActivity extends BaseActivity {
     private void initViews() {
 
 
-        mWebView = new WebView(getApplicationContext());
+        text_err.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mWebView.reload();
+            }
+        });
+
+      //  mWebView=findViewById(R.id.webview);
+     /*   mWebView = new WebView(getApplicationContext());
         FrameLayout container = (FrameLayout) findViewById(R.id.container);
-        container.addView(mWebView);
+        container.addView(mWebView);*/
         initWebViewSetting();
         mWebView.setBackgroundColor(0);
         mWebView.addJavascriptInterface(new AppJs(this, mWebView), "AppJs");
 
 
         mWebView.setWebViewClient(new WebViewClient() {
+
+
+
+            @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                super.onReceivedError(view, request, error);
+                if (request.isForMainFrame()){
+                    text_err.setVisibility(View.VISIBLE);
+                    mWebView.setVisibility(View.INVISIBLE);
+                }
+
+            }
+
+            @Override
+            public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+                super.onReceivedError(view, errorCode, description, failingUrl);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+                    return;
+                }
+                text_err.setVisibility(View.VISIBLE);
+                mWebView.setVisibility(View.INVISIBLE);
+            }
 
             @Override
             public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
@@ -284,6 +319,9 @@ public class OWebActivity extends BaseActivity {
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
+                text_err.setVisibility(View.INVISIBLE);
+                mWebView.setVisibility(View.VISIBLE);
+
             }
 
             @Override
@@ -433,7 +471,7 @@ public class OWebActivity extends BaseActivity {
     }
 
 
-    protected WebView mWebView;
+    private WebView mWebView;
 
     private String mUrl;
     private String mTitle;
@@ -458,6 +496,11 @@ public class OWebActivity extends BaseActivity {
             //这样半透明+白=灰, 状态栏的文字能看得清
             StatusBarUtil.setStatusBarColor(this, 0X0000000);
         }
+
+        mWebView=findViewById(R.id.webview);
+
+        text_err = findViewById(R.id.text_err);
+
 
 
         initViews();
