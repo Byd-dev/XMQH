@@ -61,7 +61,7 @@ public class SwitchMainEnter implements DeviceUtil.AppIdsUpdater {
 
     }
 
-    private void initLocation(Context context){
+    private void initLocation(Context context) {
         locationClient = new LocationClient(context.getApplicationContext());
         myLocationListener = new MyLocationListener();
         locationClient.registerLocationListener(myLocationListener);
@@ -149,14 +149,14 @@ public class SwitchMainEnter implements DeviceUtil.AppIdsUpdater {
 
             int errorCode = bdLocation.getLocType();
 
-            StringBuilder stringBuilder=new StringBuilder();
+            StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append("(latitude:").append(latitude).append(",").append("longitude:").append(longitude).append(")");
             String s = stringBuilder.toString();
-            SPUtils.putString(AppConfig.LOCATION,s);
+            SPUtils.putString(AppConfig.LOCATION, s);
 
-            Log.d("print", "onReceiveLocation:160:   "+s);
+            Log.d("print", "onReceiveLocation:160:   " + s);
 
-            if (locationClient.isStarted()){
+            if (locationClient.isStarted()) {
                 locationClient.stop();
             }
 
