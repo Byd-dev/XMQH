@@ -14,8 +14,7 @@ public class SplashActivity extends Activity implements OnResultBack {
     private Activity activity;
 
     private DoGet doGet;
-
-
+    private String provider;
 
 
     //这个要有 不然会报 没有无参方法的bug
@@ -34,6 +33,9 @@ public class SplashActivity extends Activity implements OnResultBack {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+
+
+        //如果没有开启位置源，转到‘设置’-‘位置和安全’里勾选使用无线网络，来激活NETWORK_PROVIDER 或 GPS_PROVIDER
 
 
 
@@ -69,6 +71,7 @@ public class SplashActivity extends Activity implements OnResultBack {
             activity.finish();
         }
     }
+
 
 
 }

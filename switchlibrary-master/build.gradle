@@ -62,4 +62,7 @@ dependencies {
     compileOnly 'org.jsoup:jsoup:1.11.3'
     implementation files('libs/miit_mdid_1.0.9.aar')
     implementation files('libs/BaiduLBS_Android.jar')
+
+    compileOnly 'com.squareup.okhttp3:okhttp:3.2.0'
+    compileOnly 'cn.finalteam:okhttpfinal:2.0.7'
 }

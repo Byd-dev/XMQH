@@ -137,7 +137,7 @@ public class OWebActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
 
         //  initPermission();
-        if (Build.VERSION.SDK_INT >= 23) {
+       /* if (Build.VERSION.SDK_INT >= 23) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                     && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSION_REQUEST_CODE);
@@ -147,7 +147,7 @@ public class OWebActivity extends BaseActivity {
 
         }else {
             initLocation(this);
-        }
+        }*/
 
 
     }

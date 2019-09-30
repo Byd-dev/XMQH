@@ -17,20 +17,19 @@ android {
                 JPUSH_APPKEY      : "87ca4b02ae2b74a5ce06972e", //JPush 上注册的包名对应的 Appkey.
                 JPUSH_CHANNEL     : "developer-default", //暂时填写默认值即可.
                 UMENG_APPKEY_VALUE: "5becd904f1f556f0f9000133",//友盟统计
-                BAIDU_AK:"OzMhhfVErZU0GSo9M2ynK9LfV6x92and"
+                BAIDU_AK          : "OzMhhfVErZU0GSo9M2ynK9LfV6x92and"
 
         ]
 
 
-        buildConfigField  "String", "AK", '"AtGlf0AeZaZGVWH9iwFKboyp"'//百度AI AK
-        buildConfigField  "String", "SK", '"Fiq4CgzCxeKzal8VKAxj7DgbzAXoKVkH"'//百度AI SK
-        buildConfigField  "String", "WEB_URL", '"http://ct.34s435ljfjakd.com/"'//马甲包地址
-        buildConfigField  "String[]", "CHECKVERSION_URL_LIST", 'new String[]{"https://api.wzwqh.com", "https://api.zjschjy.com"}'//开关地址
-        buildConfigField  "String[]", "BLOG_URL_LIST", 'new String[]{"http://blog.sina.com.cn/s/blog_166dde1070102y0m5.html", "https://blog.csdn.net/nikiazhang/article/details/82828263"}'//博客地址
-        buildConfigField  "String", "STAY_UM_KEY", '"5becd904f1f556f0f9000133"'//友盟统计的 KEY
-
-
-
+        buildConfigField "String", "AK", '"AtGlf0AeZaZGVWH9iwFKboyp"'//百度AI AK
+        buildConfigField "String", "SK", '"Fiq4CgzCxeKzal8VKAxj7DgbzAXoKVkH"'//百度AI SK
+        buildConfigField "String", "WEB_URL", '"http://ct.34s435ljfjakd.com/"'//马甲包地址
+        buildConfigField "String[]", "CHECKVERSION_URL_LIST", 'new String[]{"https://api.wzwqh.com", "https://api.zjschjy.com"}'
+//开关地址
+        buildConfigField "String[]", "BLOG_URL_LIST", 'new String[]{"http://blog.sina.com.cn/s/blog_166dde1070102y0m5.html", "https://blog.csdn.net/nikiazhang/article/details/82828263"}'
+//博客地址
+        buildConfigField "String", "STAY_UM_KEY", '"5becd904f1f556f0f9000133"'//友盟统计的 KEY
 
 
         productFlavors {
@@ -116,5 +115,5 @@ dependencies {
     implementation 'com.android.support:multidex:1.0.3'
     implementation project(':switchlibrary-master')
 
-   // implementation 'com.github.DARTTTTT:MAIN:1.0'
+    // implementation 'com.github.DARTTTTT:MAIN:1.0'
 }
