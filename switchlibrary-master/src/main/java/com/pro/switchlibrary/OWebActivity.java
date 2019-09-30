@@ -9,6 +9,12 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.location.Address;
+import android.location.Criteria;
+import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Build;
@@ -33,6 +39,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.baidu.location.BDAbstractLocationListener;
 import com.baidu.location.BDLocation;
@@ -48,8 +55,10 @@ import com.pro.switchlibrary.camera.FileUtil;
 import com.pro.switchlibrary.camera.RecognizeService;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.pro.switchlibrary.AppConfig.MY_PERMISSION_REQUEST_CODE;
@@ -136,87 +145,137 @@ public class OWebActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        //  initPermission();
-       /* if (Build.VERSION.SDK_INT >= 23) {
+        if (Build.VERSION.SDK_INT >= 23) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                     && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSION_REQUEST_CODE);
             }else {
-                initLocation(this);
+                getLocation(this);
             }
 
         }else {
-            initLocation(this);
-        }*/
+            getLocation(this);
 
-
-    }
-
-    private void initLocation(Context context){
-        locationClient = new LocationClient(context.getApplicationContext());
-        myLocationListener = new MyLocationListener();
-        locationClient.registerLocationListener(myLocationListener);
-
-        LocationClientOption option = new LocationClientOption();
-
-        option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);
-
-        option.setCoorType("bd09ll");
-
-        option.setScanSpan(1000);
-
-        option.setOpenGps(true);
-
-        option.setLocationNotify(true);
-
-        option.setIgnoreKillProcess(false);
-
-        option.SetIgnoreCacheException(false);
-//可选，设置是否收集Crash信息，默认收集，即参数为false
-        option.setWifiCacheTimeOut(5 * 60 * 1000);
-//可选，V7.2版本新增能力
-//如果设置了该接口，首次启动定位时，会先判断当前Wi-Fi是否超出有效期，若超出有效期，会先重新扫描Wi-Fi，然后定位
-        option.setEnableSimulateGps(false);
-//可选，设置是否需要过滤GPS仿真结果，默认需要，即参数为false
-        locationClient.setLocOption(option);
-        locationClient.start();
-    }
-    public void initPermission() {
-//        判断是否是6.0以上的系统
-        if (Build.VERSION.SDK_INT >= 23) {
-            //
-            if (DeviceUtil.isAllGranted(this)) {
-                if (DeviceUtil.isMIUI()) {
-                    if (!DeviceUtil.initMiuiPermission(this)) {
-                        DeviceUtil.openMiuiAppDetails(this);
-                        return;
-                    }
-                }
-
-                return;
-            } else {
-
-                /**
-                 * 第 2 步: 请求权限
-                 */
-                // 一次请求多个权限, 如果其他有权限是已经授予的将会自动忽略掉
-                ActivityCompat.requestPermissions(
-                        this,
-                        new String[]{
-                                Manifest.permission.READ_PHONE_STATE,
-                                Manifest.permission.ACCESS_COARSE_LOCATION,
-                                Manifest.permission.ACCESS_FINE_LOCATION,
-                                Manifest.permission.CAMERA,
-                                Manifest.permission.READ_EXTERNAL_STORAGE,
-                                Manifest.permission.WRITE_EXTERNAL_STORAGE
-                        },
-                        MY_PERMISSION_REQUEST_CODE
-                );
-            }
-        } else {
-            // gotoHomeActivity();
         }
+
+
     }
+
+
+    private void getLocation(Activity context) {
+
+        LocationManager locationManager = (LocationManager)context.getSystemService(LOCATION_SERVICE);
+        if (!locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) &&
+                !locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            return;
+        }
+        //设置位置查询条件，通过criteria返回符合条件的provider,有可能是wifi provider,也有可能是gps provider
+        Criteria criteria = new Criteria(); //创建一个Criteria对象
+        criteria.setAccuracy(Criteria.ACCURACY_COARSE); //设置精度,模糊模式,对于DTV地区定位足够了；ACCURACY_FINE,精确模式
+        criteria.setAltitudeRequired(false); //设置是否需要返回海拔信息,不要求海拔
+        criteria.setBearingRequired(false); //设置是否需要返回方位信息，不要求方位
+        criteria.setCostAllowed(true); //设置是否允许付费服
+        criteria.setPowerRequirement(Criteria.POWER_LOW); //设置电量消耗等级
+        criteria.setSpeedRequired(false); //设置是否需要返回速度信息
+        //根据设置的Criteria对象，获取最符合此标准的provider对象
+        String provider = locationManager.getBestProvider(criteria, true);
+
+
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(context, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSION_REQUEST_CODE);
+            return;
+        }
+        Location currentLocation = locationManager.getLastKnownLocation(provider);
+        //如果位置信息为null，则请求更新位置信息
+        if(currentLocation ==null){
+            locationManager.requestLocationUpdates(provider, 0, 0, locationListener);
+        }
+        //直到获得最后一次位置信息为止，如果未获得最后一次位置信息，则显示默认经纬度
+        //每隔10秒获取一次位置信息
+        while(true){
+            currentLocation = locationManager.getLastKnownLocation(provider);
+            if(currentLocation !=null){
+                Log.d("Location", "Latitude: "+ currentLocation.getLatitude());
+                Log.d("Location", "location: "+ currentLocation.getLongitude());
+                //长时间的监听位置更新可能导致耗电量急剧上升,一旦获取到位置后，就停止监听
+                locationManager.removeUpdates(locationListener);
+                break;
+            }else{
+                Log.d("Location", "Latitude: "+0);
+                Log.d("Location", "location: "+0);
+            }
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                Log.e("Location", e.getMessage());
+            }
+        }
+
+        //解析地址并显示
+        Geocoder geoCoder =new Geocoder(context);
+        try {
+            double latitude = currentLocation.getLatitude();
+            double longitude = currentLocation.getLongitude();
+
+            List<Address> list = geoCoder.getFromLocation(latitude, longitude, 2);
+            if(list!=null && !list.isEmpty()){
+                //取第一个地址就可以
+                Address address = list.get(0);
+                //getCountryName 国家
+                //getAdminArea 省份
+                //getLocality 城市
+                //getSubLocality 区
+                //getFeatureName 街道
+
+                StringBuilder stringBuilder=new StringBuilder();
+                stringBuilder.append("(latitude:").append(latitude).append(",").append("longitude:").append(longitude).append(")");
+                String s = stringBuilder.toString();
+                SPUtils.putString(AppConfig.LOCATION,s);
+                Log.d("print", "onCreate:117:   "+latitude+"   "+longitude);
+                //Toast.makeText(context, address.getCountryName() + address.getAdminArea() + address.getLocality()  + address.getSubLocality() + address.getFeatureName(), Toast.LENGTH_LONG).show();
+                System.out.println(address.getAddressLine(0)+" "+address.getAddressLine(1)+" "+address.getAddressLine(2)+" "+address.getFeatureName());
+
+            }
+        }
+        catch (IOException e) {
+            Toast.makeText(context,e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+
+
+
+
+    }
+
+    private LocationListener locationListener =new LocationListener(){
+        //位置发生改变时调用
+        @Override
+        public void onLocationChanged(Location location) {
+            Log.d("Location", "onLocationChanged");
+            Log.d("Location", "onLocationChanged Latitude"+ location.getLatitude());
+            Log.d("Location", "onLocationChanged location"+ location.getLongitude());
+        }
+
+        //provider失效时调用
+        @Override
+        public void onProviderDisabled(String provider) {
+            Log.d("Location", "onProviderDisabled");
+        }
+
+        //provider启用时调用
+        @Override
+        public void onProviderEnabled(String provider) {
+            Log.d("Location", "onProviderEnabled");
+        }
+
+        //状态改变时调用
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+            Log.d("Location", "onStatusChanged");
+        }
+    };
+
+
+
 
 
     @Override
