@@ -33,7 +33,6 @@ public class SplashActivity extends Activity implements OnResultBack {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        //如果没有开启位置源，转到‘设置’-‘位置和安全’里勾选使用无线网络，来激活NETWORK_PROVIDER 或 GPS_PROVIDER
 
         SwitchMainEnter.getInstance().initOCR(this, BuildConfig.AK, BuildConfig.SK);
 

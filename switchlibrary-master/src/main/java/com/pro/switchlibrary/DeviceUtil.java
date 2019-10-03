@@ -40,7 +40,6 @@ import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
 
-import com.baidu.location.LocationClient;
 import com.bun.miitmdid.core.ErrorCode;
 import com.bun.miitmdid.core.IIdentifierListener;
 import com.bun.miitmdid.core.MdidSdk;
@@ -72,7 +71,7 @@ public class DeviceUtil implements IIdentifierListener {
     private static final String KEY_MIUI_VERSION_NAME = "ro.miui.ui.version.name";
     private static final String KEY_MIUI_INTERNAL_STORAGE = "ro.miui.internal.storage";
     static Handler handler;
-    private LocationClient locationClient;
+    //private LocationClient locationClient;
 
 
     public static boolean isAllGranted(Activity activity) {

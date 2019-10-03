@@ -41,10 +41,6 @@ import android.webkit.WebViewClient;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.baidu.location.BDAbstractLocationListener;
-import com.baidu.location.BDLocation;
-import com.baidu.location.LocationClient;
-import com.baidu.location.LocationClientOption;
 import com.baidu.ocr.sdk.OCR;
 import com.baidu.ocr.sdk.OnResultListener;
 import com.baidu.ocr.sdk.exception.OCRError;
@@ -69,9 +65,9 @@ public class OWebActivity extends BaseActivity {
     private static final int REQUEST_CODE_PICK_IMAGE_BACK = 202;
     private static final int REQUEST_CODE_CAMERA = 102;
     private static final int REQUEST_CODE_BANKCARD = 111;
-    private LocationClient locationClient = null;
+    //private LocationClient locationClient = null;
 
-    private MyLocationListener myLocationListener = null;
+   // private MyLocationListener myLocationListener = null;
 
 
     private static OWebActivity instance;
@@ -864,7 +860,7 @@ public class OWebActivity extends BaseActivity {
             //gotoHomeActivity();
         }*/
     }
-    public class MyLocationListener extends BDAbstractLocationListener {
+    /*public class MyLocationListener extends BDAbstractLocationListener {
 
         @Override
         public void onReceiveLocation(BDLocation bdLocation) {
@@ -892,5 +888,5 @@ public class OWebActivity extends BaseActivity {
             }
 
         }
-    }
+    }*/
 }
