@@ -3,11 +3,8 @@ package com.pro.switchlibrary;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.hardware.fingerprint.FingerprintManagerCompat;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
@@ -15,6 +12,9 @@ import android.widget.Toast;
 
 import com.pro.switchlibrary.camera.CameraActivity;
 import com.pro.switchlibrary.camera.FileUtil;
+
+import androidx.core.app.ActivityCompat;
+import androidx.core.hardware.fingerprint.FingerprintManagerCompat;
 
 /**
  * 客服端和h5交互代码
@@ -32,8 +32,6 @@ public class AppJs {
         this.activity = activity;
         this.webView = webView;
     }
-
-
 
 
     /**
@@ -91,6 +89,7 @@ public class AppJs {
         Intent intent = new Intent(Intent.ACTION_VIEW, content_url);
         activity.startActivity(intent);
     }
+
 
     @JavascriptInterface
     public boolean TouchIDSupport() {
@@ -190,15 +189,6 @@ public class AppJs {
         Uri uri = Uri.parse("tel:" + number);
         Intent intent = new Intent(Intent.ACTION_DIAL, uri);
         activity.startActivity(intent);
-    }
-
-
-    private boolean isWebActivity() {
-        return activity instanceof OWebActivity;
-    }
-
-    private OWebActivity webActivity() {
-        return (OWebActivity) activity;
     }
 
 

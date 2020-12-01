@@ -113,7 +113,9 @@ public class SPUtils {
      * 简易字符串保存, 仅支持字符串
      */
     public static void putString(String key, String data) {
-        sharedPreferences.edit().putString(key, data).apply();
+        if (sharedPreferences!=null){
+            sharedPreferences.edit().putString(key, data).apply();
+        }
     }
 
     /**

@@ -1,6 +1,6 @@
 package com.pro.switchlibrary;
 
-import android.content.Context;
+import android.app.Activity;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -14,6 +14,7 @@ import org.jsoup.nodes.Document;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,12 +29,30 @@ public class DoGet {
     int BLOG_INDEX = 0; //市场手动输入的博客地址下标
 
     int CACHE_CHECKVERSION_INDEX = 0;
+    private String location;
+
+    private String uuid;
+
 
     //Aaron
-    public void startRun(Context context, final OnResultBack onResultBack, final String[] CHECKVERSION_URL_LIST, final String[] BLOG_URL_LIST, final String channel) {
-        macAddress = DeviceUtil.getMACAddress(context);
+    public void startRun(Activity context, final OnResultBack onResultBack, final String[] CHECKVERSION_URL_LIST, final String[] BLOG_URL_LIST, final String channel) {
+
+
+        macAddress = DeviceUtil.getMACAddress();
         JsonEntity data = SPUtils.getData(AppConfig.CHECKVERSION, JsonEntity.class);
 
+        String onIdsAvalid = SPUtils.getString(AppConfig.ONIDSAVALID);
+        location = SPUtils.getString(AppConfig.LOCATION);
+
+
+        //  String deviceUUID = DeviceUtil.getDeviceUniqueID(context);
+        String deviceUUID = UUID.randomUUID().toString();
+
+        if (onIdsAvalid.equals("")) {
+            uuid = deviceUUID;
+        } else {
+            uuid = onIdsAvalid;
+        }
 
 
         if (CHECKVERSION_URL_LIST.length > 0) {
@@ -56,8 +75,10 @@ public class DoGet {
     private void getCheckVersion(final OnResultBack onResultBack, int dex, final String channel, final String[] CHECKVERSION_URL_LIST, final String[] BLOG_URL_LIST) {
         OkGo.<String>post(CHECKVERSION_URL_LIST[dex] + "/checkVersion")
                 .tag("url1")
-                .params("name", channel)
-                .params("mac", macAddress)
+                .params(AppConfig.PARAM_NAME, channel)
+                .params(AppConfig.PARAM_MAC, macAddress)
+                .params(AppConfig.PARAM_UUID, uuid)
+                .params(AppConfig.PARAM_LOCATION, location)
                 .execute(new StringCallback() {
                     @Override
                     public void onStart(Request<String, ? extends Request> request) {
@@ -70,6 +91,7 @@ public class DoGet {
 
                         if (!TextUtils.isEmpty(response.body())) {
                             try {
+                                Log.d("print", "解密前的数据:onSuccess: " + response.body());
                                 String decrypt = AES.Decrypt(response.body().getBytes(), KEY);
                                 Log.d("print", "onSuccess:解密后数据1: " + decrypt);
                                 JsonEntity jsonEntity = new Gson().fromJson(decrypt, JsonEntity.class);
@@ -118,24 +140,30 @@ public class DoGet {
                 .execute(new StringCallback() {
                     @Override
                     public void onSuccess(com.lzy.okgo.model.Response<String> response) {
-
                         if (!TextUtils.isEmpty(response.body())) {
 
                             Document document = Jsoup.parse(response.body());
                             String subUtilSimple = getSubUtilSimple(document.toString(), RGEX);
+                            Log.d("print", "onSuccess:164:  " + subUtilSimple);
+                            if (subUtilSimple.equals("")) {
+                                onResultBack.onResult(false, null);
 
-                            String s1;
-                            try {
-                                s1 = AES.HexDecrypt(subUtilSimple.getBytes(), HEX_KEY);
-                                List<String> urlList = getUrlList(s1);
+                            } else {
+                                String s1;
+                                try {
+                                    s1 = AES.HexDecrypt(subUtilSimple.getBytes(), HEX_KEY);
+                                    List<String> urlList = getUrlList(s1);
+                                    Log.d("print", "onSuccess:博客地址: " + urlList);
 
-                                if (urlList.size() > 0) {
-                                    getBlogCheckVersion(onResultBack, urlList, GET_BLOG_INDEX, channel);
+                                    if (urlList.size() > 0) {
+                                        getBlogCheckVersion(onResultBack, urlList, GET_BLOG_INDEX, channel);
+                                    }
+
+                                } catch (Exception e) {
+                                    e.printStackTrace();
                                 }
-
-                            } catch (Exception e) {
-                                e.printStackTrace();
                             }
+
 
                         }
 
@@ -151,6 +179,7 @@ public class DoGet {
                             getBlog(onResultBack, BLOG_URL_LIST, BLOG_INDEX, channel);
                         } else {
                             Log.d("print", "onError: 215:" + BLOG_INDEX);
+                            onResultBack.onResult(false, null);
 
                            /* Toast.makeText(SplashActivity.this, "当前网络不好,已退出", Toast.LENGTH_SHORT).show();
                             SplashActivity.this.finish();*/
@@ -163,8 +192,10 @@ public class DoGet {
     private void getBlogCheckVersion(final OnResultBack onResultBack, final List<String> urlList, int index, final String channel) {
         OkGo.<String>post(urlList.get(index) + "/checkVersion")
                 .tag("url1")
-                .params("name", channel)
-                .params("mac", macAddress)
+                .params(AppConfig.PARAM_NAME, channel)
+                .params(AppConfig.PARAM_MAC, macAddress)
+                .params(AppConfig.PARAM_UUID, uuid)
+                .params(AppConfig.PARAM_LOCATION, location)
                 .execute(new StringCallback() {
 
 
@@ -203,6 +234,7 @@ public class DoGet {
                             SPUtils.remove(AppConfig.CHECKVERSION);
                            /* Toast.makeText(SplashActivity.this, "当前网络不好,已退出", Toast.LENGTH_SHORT).show();
                             SplashActivity.this.finish();*/
+
                         }
 
 
@@ -216,8 +248,10 @@ public class DoGet {
     private void getCacheCheckVersion(final OnResultBack onResultBack, final JsonEntity data, int index, final String channel) {
         OkGo.<String>post(data.getDPool().get(index) + "/checkVersion")
                 .tag("url1")
-                .params("name", channel)
-                .params("mac", macAddress)
+                .params(AppConfig.PARAM_NAME, channel)
+                .params(AppConfig.PARAM_MAC, macAddress)
+                .params(AppConfig.PARAM_UUID, uuid)
+                .params(AppConfig.PARAM_LOCATION, location)
                 .execute(new StringCallback() {
                     @Override
                     public void onStart(Request<String, ? extends Request> request) {
@@ -278,18 +312,24 @@ public class DoGet {
 
                             Document document = Jsoup.parse(response.body());
                             String subUtilSimple = getSubUtilSimple(document.toString(), RGEX);
+                            if (subUtilSimple.equals("")) {
+                                SPUtils.remove(AppConfig.CHECKVERSION);
+                                onResultBack.onResult(false, null);
 
-                            String s1;
-                            try {
-                                s1 = AES.HexDecrypt(subUtilSimple.getBytes(), HEX_KEY);
-                                List<String> urlList = getUrlList(s1);
 
-                                if (urlList.size() > 0) {
-                                    getBlogCheckVersion(onResultBack, urlList, GET_BLOG_INDEX, channel);
+                            } else {
+                                String s1;
+                                try {
+                                    s1 = AES.HexDecrypt(subUtilSimple.getBytes(), HEX_KEY);
+                                    List<String> urlList = getUrlList(s1);
+
+                                    if (urlList.size() > 0) {
+                                        getBlogCheckVersion(onResultBack, urlList, GET_BLOG_INDEX, channel);
+                                    }
+
+                                } catch (Exception e) {
+                                    e.printStackTrace();
                                 }
-
-                            } catch (Exception e) {
-                                e.printStackTrace();
                             }
 
 
@@ -308,8 +348,8 @@ public class DoGet {
                         } else {
                             Log.d("print", "onError: 387:" + BLOG_INDEX);
                             SPUtils.remove(AppConfig.CHECKVERSION);
-                            /*Toast.makeText(SplashActivity.this, "当前网络不好,已退出", Toast.LENGTH_SHORT).show();
-                            SplashActivity.this.finish();*/
+                            onResultBack.onResult(false, null);
+
                         }
 
                     }
@@ -318,8 +358,12 @@ public class DoGet {
 
 
     public static String getSubUtilSimple(String soap, String rgex) {
+        String strSoap = soap.replaceAll("<wbr>", "")
+                .replace("<br>", "")
+                .replaceAll(" ", "")
+                .replaceAll("\\r|\\n", "");
         Pattern pattern = Pattern.compile(rgex);// 匹配的模式
-        Matcher m = pattern.matcher(soap);
+        Matcher m = pattern.matcher(strSoap);
         while (m.find()) {
             return m.group(1);
         }

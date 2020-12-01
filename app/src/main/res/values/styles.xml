@@ -16,7 +16,7 @@
         <!--设置全屏状态-->
         <item name="android:windowFullscreen">true</item>
         <!--设置背景图片-->
-        <item name="android:windowBackground">@mipmap/qhbbx_bg</item>
+        <item name="android:windowBackground">@mipmap/start</item>
         <!--设置内容覆盖-->
         <item name="android:windowContentOverlay">@null</item>
 

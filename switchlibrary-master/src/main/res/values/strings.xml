@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">SwitchLibrary</string>
     <string name="camera_permission_required">本功能需要相机权限！</string>
+    <string name="all_permission_required">"需要访问 \"设备信息\"、\"相册\"、\"定位\" 和 \"外部存储器\",请到 \"应用信息 -> 权限\" 中授予！"</string>
+
 </resources>

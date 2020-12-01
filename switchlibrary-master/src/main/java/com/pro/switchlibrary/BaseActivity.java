@@ -3,16 +3,13 @@ package com.pro.switchlibrary;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.support.annotation.ColorInt;
-import android.support.annotation.Nullable;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.graphics.ColorUtils;
-import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -23,7 +20,11 @@ import android.widget.EditText;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import butterknife.ButterKnife;
+import androidx.annotation.ColorInt;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.ColorUtils;
+import androidx.fragment.app.FragmentManager;
 
 /**
  * 作者：aaron on 2017/5/19.
@@ -36,6 +37,15 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     private FragmentManager fragmentManager;
 
+    @Override
+    public Resources getResources() {
+        // 字体大小不跟随系统
+        Resources res = super.getResources();
+        Configuration config = new Configuration();
+        config.setToDefaults();
+        res.updateConfiguration(config, res.getDisplayMetrics());
+        return res;
+    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -44,13 +54,12 @@ public abstract class BaseActivity extends AppCompatActivity {
         setContentView(setContentLayout());
 
 
-
         //铺满屏幕
         //getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,  WindowManager.LayoutParams.FLAG_FULLSCREEN);
-       // setStatusBar(getResources().getColor(R.color.white));
+        // setStatusBar(getResources().getColor(R.color.white));
 
 
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         fragmentManager = getSupportFragmentManager();
         initPresenter();
         initView(mView);
@@ -84,7 +93,6 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
 
-
     protected abstract int setContentLayout();
 
     protected abstract void initPresenter();
@@ -106,7 +114,6 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
 
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -124,7 +131,6 @@ public abstract class BaseActivity extends AppCompatActivity {
         super.onResume();
 
     }
-
 
 
     //隐藏虚拟键盘

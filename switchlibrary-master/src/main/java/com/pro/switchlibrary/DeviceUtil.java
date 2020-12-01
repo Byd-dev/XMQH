@@ -29,11 +29,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.provider.MediaStore;
-import android.support.annotation.NonNull;
-import android.support.annotation.RequiresApi;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.hardware.fingerprint.FingerprintManagerCompat;
+import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
@@ -48,7 +44,6 @@ import com.bun.miitmdid.supplier.IdSupplier;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
@@ -57,19 +52,31 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.security.MessageDigest;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
+import java.util.Locale;
+import java.util.UUID;
 
-import static com.pro.switchlibrary.AppConfig.MY_PERMISSION_REQUEST_CODE;
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.hardware.fingerprint.FingerprintManagerCompat;
+import androidx.core.os.CancellationSignal;
 
 public class DeviceUtil implements IIdentifierListener {
 
 
+    private static final int MY_PERMISSION_REQUEST_CODE = 10000;
+
+    //检测MIUI
     private static final String KEY_MIUI_VERSION_CODE = "ro.miui.ui.version.code";
     private static final String KEY_MIUI_VERSION_NAME = "ro.miui.ui.version.name";
     private static final String KEY_MIUI_INTERNAL_STORAGE = "ro.miui.internal.storage";
+
     static Handler handler;
     //private LocationClient locationClient;
 
@@ -287,7 +294,7 @@ public class DeviceUtil implements IIdentifierListener {
                     dialog.show();
 
                     if (dialog.isShowing()) {
-                        fingerprint.authenticate(null, 0, new android.support.v4.os.CancellationSignal(), new FingerprintManagerCompat.AuthenticationCallback() {
+                        fingerprint.authenticate(null, 0, new CancellationSignal(), new FingerprintManagerCompat.AuthenticationCallback() {
                             @Override
                             public void onAuthenticationError(int errMsgId, CharSequence errString) {
                                 super.onAuthenticationError(errMsgId, errString);
@@ -435,7 +442,13 @@ public class DeviceUtil implements IIdentifierListener {
         return versionCode;
     }
 
-    public static boolean isMIUI() {
+    /**
+     * 检查手机是否是miui系统
+     *
+     * @return
+     */
+
+    /*public static boolean isMIUI() {
         String device = Build.MANUFACTURER;
         System.out.println("Build.MANUFACTURER = " + device);
         if (device.equals("Xiaomi")) {
@@ -453,6 +466,14 @@ public class DeviceUtil implements IIdentifierListener {
         } else {
             return false;
         }
+    }*/
+    public static boolean isMIUI() {
+        String manufacturer = Build.MANUFACTURER;
+        //这个字符串可以自己定义,例如判断华为就填写huawei,魅族就填写meizu
+        if ("xiaomi".equalsIgnoreCase(manufacturer)) {
+            return true;
+        }
+        return false;
     }
 
 
@@ -460,7 +481,7 @@ public class DeviceUtil implements IIdentifierListener {
 
     public static void openMiuiAppDetails(final Activity activity) {
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-        builder.setMessage(activity.getString(R.string.app_name) + "需要访问 \"设备信息\"、\"相册\"、\"定位\" 和 \"外部存储器\",请到 \"应用信息 -> 权限\" 中授予！");
+        builder.setMessage(activity.getString(R.string.app_name) + "需要访问 \"设备信息\"、\"相册\"、\"地理位置\" 和 \"外部存储器\",请到 \"应用信息 -> 权限\" 中授予！");
         builder.setPositiveButton("手动授权", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -505,9 +526,6 @@ public class DeviceUtil implements IIdentifierListener {
     }
 
 
-
-
-
     // Mac地址
     public static String getMACAddress(Context context) {
         WifiManager wifi = (WifiManager) context
@@ -515,6 +533,33 @@ public class DeviceUtil implements IIdentifierListener {
         WifiInfo info = wifi.getConnectionInfo();
         return info.getMacAddress();
     }
+
+    public static String getMACAddress() {
+        try {
+            List<NetworkInterface> all = Collections.list(NetworkInterface.getNetworkInterfaces());
+            for (NetworkInterface nif : all) {
+                if (!nif.getName().equalsIgnoreCase("wlan0")) continue;
+
+                byte[] macBytes = nif.getHardwareAddress();
+                if (macBytes == null) {
+                    return "";
+                }
+
+                StringBuilder res1 = new StringBuilder();
+                for (byte b : macBytes) {
+                    res1.append(String.format("%02X:", b));
+                }
+
+                if (res1.length() > 0) {
+                    res1.deleteCharAt(res1.length() - 1);
+                }
+                return res1.toString();
+            }
+        } catch (Exception ex) {
+        }
+        return "02:00:00:00:00:00";
+    }
+
 
     public static String getUniqueID() {
         String m_szDevIDShort = "35" + //we make this look like a valid IMEI
@@ -963,7 +1008,7 @@ public class DeviceUtil implements IIdentifierListener {
         String firstInstallTime = AppUtil.getFirstInstallTime();
         String packageName = context.getApplication().getPackageName();
         String ipAddress = getIPAddress(context);
-        String macAddress = getMACAddress(context);
+        String macAddress = getMACAddress();
         String phoneNumber = getPhoneNumber(context);
 
         String location = SPUtils.getString(AppConfig.LOCATION);
@@ -1109,27 +1154,30 @@ public class DeviceUtil implements IIdentifierListener {
 
     @Override
     public void OnSupport(boolean isSupport, IdSupplier _supplier) {
+
+        //Log.d("print", "OnSupport:1164:  " + isSupport);
         if (_supplier == null) {
             return;
         }
+
         String oaid = _supplier.getOAID();
         String vaid = _supplier.getVAID();
         String aaid = _supplier.getAAID();
-        String udid = _supplier.getUDID();
         StringBuilder builder = new StringBuilder();
         builder.append("support: ").append(isSupport ? "true" : "false").append("\n");
-        builder.append("UDID: ").append(udid).append("\n");
         builder.append("OAID: ").append(oaid).append("\n");
         builder.append("VAID: ").append(vaid).append("\n");
         builder.append("AAID: ").append(aaid).append("\n");
         String idstext = builder.toString();
 
-
         _supplier.shutDown();
         if (_listener != null) {
             _listener.OnIdsAvalid(idstext);
-            _listener.getOaid(oaid);
+            _listener.getOaid(isSupport, oaid);
+
         }
+
+
     }
 
     private AppIdsUpdater _listener;
@@ -1146,7 +1194,8 @@ public class DeviceUtil implements IIdentifierListener {
     public interface AppIdsUpdater {
         void OnIdsAvalid(@NonNull String ids);
 
-        void getOaid(String oaid);
+        void getOaid(boolean isSupport, String oaid);
+
     }
 
     public int DirectCall(Context cxt) {
@@ -1154,5 +1203,147 @@ public class DeviceUtil implements IIdentifierListener {
         return sdk.InitSdk(cxt, this);
     }
 
+
+    public static String getDeviceUniqueID(Context context) {
+        StringBuilder sbDeviceId = new StringBuilder();
+
+        //获得设备默认IMEI（>=6.0 需要ReadPhoneState权限）
+        String imei = getIMEI(context);
+        //获得AndroidId（无需权限）
+        String androidid = getAndroidId(context);
+        //获得设备序列号（无需权限）
+        String serial = getSERIAL();
+        //获得硬件uuid（根据硬件相关属性，生成uuid）（无需权限）
+        String uuid = getDeviceUUID().replace("-", "");
+
+        //追加imei
+        if (imei != null && imei.length() > 0) {
+            sbDeviceId.append(imei);
+            sbDeviceId.append("|");
+        }
+        //追加androidid
+        if (androidid != null && androidid.length() > 0) {
+            sbDeviceId.append(androidid);
+            sbDeviceId.append("|");
+        }
+        //追加serial
+        if (serial != null && serial.length() > 0) {
+            sbDeviceId.append(serial);
+            sbDeviceId.append("|");
+        }
+        //追加硬件uuid
+        if (uuid != null && uuid.length() > 0) {
+            sbDeviceId.append(uuid);
+        }
+
+        //生成SHA1，统一DeviceId长度
+        if (sbDeviceId.length() > 0) {
+            try {
+                byte[] hash = getHashByString(sbDeviceId.toString());
+                String sha1 = bytesToHex(hash);
+                if (sha1 != null && sha1.length() > 0) {
+                    //返回最终的DeviceId
+                    return sha1;
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+
+        //如果以上硬件标识数据均无法获得，
+        //则DeviceId默认使用系统随机数，这样保证DeviceId不为空
+        return UUID.randomUUID().toString().replace("-", "");
+    }
+
+
+    /**
+     * 获得设备的AndroidId
+     *
+     * @param context 上下文
+     * @return 设备的AndroidId
+     */
+    private static String getAndroidId(Context context) {
+        try {
+            return Settings.Secure.getString(context.getContentResolver(),
+                    Settings.Secure.ANDROID_ID);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return "";
+    }
+
+    /**
+     * 获得设备序列号（如：WTK7N16923005607）, 个别设备无法获取
+     *
+     * @return 设备序列号
+     */
+    private static String getSERIAL() {
+        try {
+            return Build.SERIAL;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return "";
+    }
+
+    /**
+     * 获得设备硬件uuid
+     * 使用硬件信息，计算出一个随机数
+     *
+     * @return 设备硬件uuid
+     */
+    private static String getDeviceUUID() {
+        try {
+            String dev = "3883756" +
+                    Build.BOARD.length() % 10 +
+                    Build.BRAND.length() % 10 +
+                    Build.DEVICE.length() % 10 +
+                    Build.HARDWARE.length() % 10 +
+                    Build.ID.length() % 10 +
+                    Build.MODEL.length() % 10 +
+                    Build.PRODUCT.length() % 10 +
+                    Build.SERIAL.length() % 10;
+            return new UUID(dev.hashCode(),
+                    Build.SERIAL.hashCode()).toString();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return "";
+        }
+    }
+
+    /**
+     * 取SHA1
+     *
+     * @param data 数据
+     * @return 对应的hash值
+     */
+    private static byte[] getHashByString(String data) {
+        try {
+            MessageDigest messageDigest = MessageDigest.getInstance("SHA1");
+            messageDigest.reset();
+            messageDigest.update(data.getBytes("UTF-8"));
+            return messageDigest.digest();
+        } catch (Exception e) {
+            return "".getBytes();
+        }
+    }
+
+    /**
+     * 转16进制字符串
+     *
+     * @param data 数据
+     * @return 16进制字符串
+     */
+    private static String bytesToHex(byte[] data) {
+        StringBuilder sb = new StringBuilder();
+        String stmp;
+        for (int n = 0; n < data.length; n++) {
+            stmp = (Integer.toHexString(data[n] & 0xFF));
+            if (stmp.length() == 1)
+                sb.append("0");
+            sb.append(stmp);
+        }
+        return sb.toString().toUpperCase(Locale.CHINA);
+    }
 
 }

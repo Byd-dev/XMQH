@@ -3,6 +3,7 @@ package com.pro.switchlibrary;
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AppOpsManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -17,14 +18,11 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.net.http.SslError;
+import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.annotation.RequiresApi;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -35,9 +33,11 @@ import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -52,12 +52,20 @@ import com.pro.switchlibrary.camera.RecognizeService;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.pro.switchlibrary.AppConfig.MY_PERMISSION_REQUEST_CODE;
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import static com.pro.switchlibrary.DeviceUtil.isMIUI;
 
 public class OWebActivity extends BaseActivity {
 
@@ -67,11 +75,20 @@ public class OWebActivity extends BaseActivity {
     private static final int REQUEST_CODE_BANKCARD = 111;
     //private LocationClient locationClient = null;
 
-   // private MyLocationListener myLocationListener = null;
+    // private MyLocationListener myLocationListener = null;
+
+    private static final int MY_PERMISSION_REQUEST_CODE = 10000;
+
+    //检测MIUI
+    private static final String KEY_MIUI_VERSION_CODE = "ro.miui.ui.version.code";
+    private static final String KEY_MIUI_VERSION_NAME = "ro.miui.ui.version.name";
+    private static final String KEY_MIUI_INTERNAL_STORAGE = "ro.miui.internal.storage";
 
 
     private static OWebActivity instance;
     private TextView text_err;
+
+    private RelativeLayout layout;
 
     public static OWebActivity getInstance() {
 
@@ -141,26 +158,169 @@ public class OWebActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (Build.VERSION.SDK_INT >= 23) {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                    && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSION_REQUEST_CODE);
-            }else {
-                getLocation(this);
+
+       /* if (Build.VERSION.SDK_INT >= 23) {
+            if (DeviceUtil.isMIUI()) {
+                if (!initMiuiPermission()) {
+                    openMiuiAppDetails();
+                    return;
+                } else {
+                    getLocation(this);
+
+                }
+            } else {
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                        && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSION_REQUEST_CODE);
+                } else {
+                    getLocation(this);
+                }
             }
 
-        }else {
+        } else {
             getLocation(this);
+        }*/
+        //initPermission();
 
+
+    }
+
+    public void initPermission() {
+//        判断是否是6.0以上的系统
+        if (Build.VERSION.SDK_INT >= 23) {
+            //
+            if (isAllGranted()) {
+                if (isMIUI()) {
+                    if (!initMiuiPermission()) {
+                        openMiuiAppDetails();
+                        return;
+                    }
+                }
+
+                getLocation(this);
+                //gotoHomeActivity();
+                return;
+            } else {
+
+                /**
+                 * 第 2 步: 请求权限
+                 */
+                // 一次请求多个权限, 如果其他有权限是已经授予的将会自动忽略掉
+                ActivityCompat.requestPermissions(
+                        this,
+                        new String[]{
+                                Manifest.permission.READ_PHONE_STATE,
+                                Manifest.permission.ACCESS_COARSE_LOCATION,
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.CAMERA,
+                                Manifest.permission.READ_EXTERNAL_STORAGE,
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE
+                        },
+                        MY_PERMISSION_REQUEST_CODE
+                );
+            }
+        } else {
+            // gotoHomeActivity();
+            getLocation(this);
+        }
+    }
+
+
+    public boolean isAllGranted() {
+        /**
+         * 第 1 步: 检查是否有相应的权限
+         */
+        boolean isAllGranted = checkPermissionAllGranted(
+                new String[]{
+                        Manifest.permission.READ_PHONE_STATE,
+                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.CAMERA,
+                        Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE
+                }
+        );
+
+        return isAllGranted;
+    }
+
+    /**
+     * 检查是否拥有指定的所有权限
+     */
+    private boolean checkPermissionAllGranted(String[] permissions) {
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                // 只要有一个权限没有被授予, 则直接返回 false
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 判断小米MIUI系统中授权管理中对应的权限授取
+     *
+     * @return false 存在核心的未收取的权限   true 核心权限已经全部授权
+     */
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    public boolean initMiuiPermission() {
+        AppOpsManager appOpsManager = (AppOpsManager) getSystemService(Context.APP_OPS_SERVICE);
+        int locationOp = appOpsManager.checkOp(AppOpsManager.OPSTR_FINE_LOCATION, Binder.getCallingUid(), getPackageName());
+        if (locationOp == AppOpsManager.MODE_IGNORED) {
+            return false;
         }
 
+        int cameraOp = appOpsManager.checkOp(AppOpsManager.OPSTR_CAMERA, Binder.getCallingUid(), getPackageName());
+        if (cameraOp == AppOpsManager.MODE_IGNORED) {
+            return false;
+        }
 
+        int phoneStateOp = appOpsManager.checkOp(AppOpsManager.OPSTR_READ_PHONE_STATE, Binder.getCallingUid(), getPackageName());
+        if (phoneStateOp == AppOpsManager.MODE_IGNORED) {
+            return false;
+        }
+
+        int readSDOp = appOpsManager.checkOp(AppOpsManager.OPSTR_READ_EXTERNAL_STORAGE, Binder.getCallingUid(), getPackageName());
+        if (readSDOp == AppOpsManager.MODE_IGNORED) {
+            return false;
+        }
+
+        int writeSDOp = appOpsManager.checkOp(AppOpsManager.OPSTR_WRITE_EXTERNAL_STORAGE, Binder.getCallingUid(), getPackageName());
+        if (writeSDOp == AppOpsManager.MODE_IGNORED) {
+            return false;
+        }
+        return true;
+    }
+
+
+    AlertDialog openMiuiAppDetDialog = null;
+
+    /**
+     * 打开 APP 的详情设置
+     */
+    private void openMiuiAppDetails() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(getString(R.string.app_name) + getString(R.string.all_permission_required));
+        builder.setPositiveButton("手动授权", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                JumpPermissionManagement.GoToSetting(OWebActivity.this);
+            }
+        });
+        builder.setCancelable(false);
+        builder.setNegativeButton("取消", (dialog, which) -> {
+            //finish();
+        });
+        if (null == openMiuiAppDetDialog)
+            openMiuiAppDetDialog = builder.create();
+        if (null != openMiuiAppDetDialog && !openMiuiAppDetDialog.isShowing())
+            openMiuiAppDetDialog.show();
     }
 
 
     private void getLocation(Activity context) {
 
-        LocationManager locationManager = (LocationManager)context.getSystemService(LOCATION_SERVICE);
+        LocationManager locationManager = (LocationManager) context.getSystemService(LOCATION_SERVICE);
         if (!locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) &&
                 !locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             return;
@@ -183,22 +343,22 @@ public class OWebActivity extends BaseActivity {
         }
         Location currentLocation = locationManager.getLastKnownLocation(provider);
         //如果位置信息为null，则请求更新位置信息
-        if(currentLocation ==null){
+        if (currentLocation == null) {
             locationManager.requestLocationUpdates(provider, 0, 0, locationListener);
         }
         //直到获得最后一次位置信息为止，如果未获得最后一次位置信息，则显示默认经纬度
         //每隔10秒获取一次位置信息
-        while(true){
+        while (true) {
             currentLocation = locationManager.getLastKnownLocation(provider);
-            if(currentLocation !=null){
-                Log.d("Location", "Latitude: "+ currentLocation.getLatitude());
-                Log.d("Location", "location: "+ currentLocation.getLongitude());
+            if (currentLocation != null) {
+                Log.d("Location", "Latitude: " + currentLocation.getLatitude());
+                Log.d("Location", "location: " + currentLocation.getLongitude());
                 //长时间的监听位置更新可能导致耗电量急剧上升,一旦获取到位置后，就停止监听
                 locationManager.removeUpdates(locationListener);
                 break;
-            }else{
-                Log.d("Location", "Latitude: "+0);
-                Log.d("Location", "location: "+0);
+            } else {
+                Log.d("Location", "Latitude: " + 0);
+                Log.d("Location", "location: " + 0);
             }
             try {
                 Thread.sleep(10000);
@@ -208,13 +368,13 @@ public class OWebActivity extends BaseActivity {
         }
 
         //解析地址并显示
-        Geocoder geoCoder =new Geocoder(context);
+        Geocoder geoCoder = new Geocoder(context);
         try {
             double latitude = currentLocation.getLatitude();
             double longitude = currentLocation.getLongitude();
 
             List<Address> list = geoCoder.getFromLocation(latitude, longitude, 2);
-            if(list!=null && !list.isEmpty()){
+            if (list != null && !list.isEmpty()) {
                 //取第一个地址就可以
                 Address address = list.get(0);
                 //getCountryName 国家
@@ -223,32 +383,29 @@ public class OWebActivity extends BaseActivity {
                 //getSubLocality 区
                 //getFeatureName 街道
 
-                StringBuilder stringBuilder=new StringBuilder();
-                stringBuilder.append("(latitude:").append(latitude).append(",").append("longitude:").append(longitude).append(")");
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.append(latitude).append(",").append(longitude);
                 String s = stringBuilder.toString();
-                SPUtils.putString(AppConfig.LOCATION,s);
-                Log.d("print", "onCreate:117:   "+latitude+"   "+longitude);
+                SPUtils.putString(AppConfig.LOCATION, s);
+                Log.d("print", "onCreate:117:   " + latitude + "   " + longitude);
                 //Toast.makeText(context, address.getCountryName() + address.getAdminArea() + address.getLocality()  + address.getSubLocality() + address.getFeatureName(), Toast.LENGTH_LONG).show();
-                System.out.println(address.getAddressLine(0)+" "+address.getAddressLine(1)+" "+address.getAddressLine(2)+" "+address.getFeatureName());
+                System.out.println(address.getAddressLine(0) + " " + address.getAddressLine(1) + " " + address.getAddressLine(2) + " " + address.getFeatureName());
 
             }
+        } catch (IOException e) {
+            Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
         }
-        catch (IOException e) {
-            Toast.makeText(context,e.getMessage(), Toast.LENGTH_LONG).show();
-        }
-
-
 
 
     }
 
-    private LocationListener locationListener =new LocationListener(){
+    private LocationListener locationListener = new LocationListener() {
         //位置发生改变时调用
         @Override
         public void onLocationChanged(Location location) {
             Log.d("Location", "onLocationChanged");
-            Log.d("Location", "onLocationChanged Latitude"+ location.getLatitude());
-            Log.d("Location", "onLocationChanged location"+ location.getLongitude());
+            Log.d("Location", "onLocationChanged Latitude" + location.getLatitude());
+            Log.d("Location", "onLocationChanged location" + location.getLongitude());
         }
 
         //provider失效时调用
@@ -271,17 +428,14 @@ public class OWebActivity extends BaseActivity {
     };
 
 
-
-
-
     @Override
     protected int setContentLayout() {
-        return R.layout.activity_main_web;
+        return R.layout.web;
     }
 
     private static void openWeb(Context context, Intent intent) {
 
-        intent.putExtra("title","color");
+        intent.putExtra("title", "color");
 
         context.startActivity(intent);
 
@@ -289,16 +443,16 @@ public class OWebActivity extends BaseActivity {
 
 
     private void processIntent(Intent intent) {
-        Log.d(TAG, "openUrlNotitle:366:   "+intent);
-        Log.d(TAG, "openUrlNotitle:368:   "+intent);
+        Log.d(TAG, "openUrlNotitle:366:   " + intent);
+        Log.d(TAG, "openUrlNotitle:368:   " + intent);
 
         if (intent != null) {
             mTitle = intent.getStringExtra(KEY_TITLE);
             mUrl = intent.getStringExtra(KEY_URL);
             String title = intent.getStringExtra("title");
 
-            if (title.equals("color")){
-                setStatusBar(getResources().getColor(R.color.black));
+            if (title.equals("color")) {
+                setStatusBar(getResources().getColor(R.color.barColor));
 
             }
 
@@ -322,6 +476,9 @@ public class OWebActivity extends BaseActivity {
 
     private void initViews() {
 
+       /* Toast.makeText(this, "UUID:" + SPUtils.getString(AppConfig.ONIDSAVALID)
+                + "位置:" + SPUtils.getString(AppConfig.LOCATION)
+                + "MAC:" + DeviceUtil.getMACAddress(), Toast.LENGTH_SHORT).show();*/
 
         text_err.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -330,24 +487,36 @@ public class OWebActivity extends BaseActivity {
             }
         });
 
-      //  mWebView=findViewById(R.id.webview);
+        //  mWebView=findViewById(R.id.webview);
      /*   mWebView = new WebView(getApplicationContext());
         FrameLayout container = (FrameLayout) findViewById(R.id.container);
         container.addView(mWebView);*/
         initWebViewSetting();
         mWebView.setBackgroundColor(0);
+
+        //这个H5会调用原生桥的LinTo的方法导致支付跳到外部浏览器
         mWebView.addJavascriptInterface(new AppJs(this, mWebView), "AppJs");
 
 
         mWebView.setWebViewClient(new WebViewClient() {
 
-
+            @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                /*try {
+                    URL url = new URL(request.getUrl());
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                }*/
+                Log.d("print", "shouldInterceptRequest:551:  "+request.getUrl());
+                return super.shouldInterceptRequest(view, request);
+            }
 
             @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
             @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 super.onReceivedError(view, request, error);
-                if (request.isForMainFrame()){
+                if (request.isForMainFrame()) {
                     text_err.setVisibility(View.VISIBLE);
                     mWebView.setVisibility(View.INVISIBLE);
                 }
@@ -357,7 +526,7 @@ public class OWebActivity extends BaseActivity {
             @Override
             public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
                 super.onReceivedError(view, errorCode, description, failingUrl);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     return;
                 }
                 text_err.setVisibility(View.VISIBLE);
@@ -508,11 +677,7 @@ public class OWebActivity extends BaseActivity {
         }
     }
 
-    public  void openUrlNotitle(Context context, String H5url, String title) {
-
-        String phoneInfo = DeviceUtil.getPhoneInfo((Activity) context);
-
-        Log.d("print", "initOCR:40: " + phoneInfo);
+    public void openUrlNotitle(Context context, String H5url, String title) {
 
 
         isProgress = false;
@@ -542,6 +707,7 @@ public class OWebActivity extends BaseActivity {
     @Override
     protected void initView(View view) {
 
+
         //当FitsSystemWindows设置 true 时，会在屏幕最上方预留出状态栏高度的 padding
         StatusBarUtil.setRootViewFitsSystemWindows(this, true);
         //设置状态栏透明
@@ -552,10 +718,10 @@ public class OWebActivity extends BaseActivity {
             StatusBarUtil.setStatusBarColor(this, 0X0000000);
         }
 
-        mWebView=findViewById(R.id.webview);
+        mWebView = findViewById(R.id.webview);
 
         text_err = findViewById(R.id.text_err);
-
+        layout = findViewById(R.id.layout);
 
 
         initViews();
@@ -590,6 +756,8 @@ public class OWebActivity extends BaseActivity {
     protected void onDestroy() {
         if (mWebView != null) {
             mWebView.removeJavascriptInterface("AppJs");
+            layout.removeView(mWebView);
+            mWebView.removeAllViews();
             mWebView.destroy();
         }
         //EventBus.getDefault().unregister(this);
@@ -609,8 +777,6 @@ public class OWebActivity extends BaseActivity {
             mWebView.goBack();
         }
     }
-
-
 
 
     // 调起支付宝并跳转到指定页面
@@ -668,15 +834,15 @@ public class OWebActivity extends BaseActivity {
 
     }
 
-    @Override
-    public void onBackPressed() {
-        if (mWebView != null && mWebView.canGoBack()) {
-            mWebView.goBack();
-        } else {
-            // super.onBackPressed();
-        }
-    }
-
+    /* @Override
+     public void onBackPressed() {
+         if (mWebView != null && mWebView.canGoBack()) {
+             mWebView.goBack();
+         } else {
+             // super.onBackPressed();
+         }
+     }
+ */
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
@@ -783,6 +949,7 @@ public class OWebActivity extends BaseActivity {
         return result;
     }
 
+    //old
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -808,15 +975,45 @@ public class OWebActivity extends BaseActivity {
 
     }
 
+
+    /**
+     * 第 3 步: 申请权限结果返回处理
+     */
+    /*@Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == MY_PERMISSION_REQUEST_CODE) {
+            boolean isAllGranted = true;
+
+            // 判断是否所有的权限都已经授予了
+            for (int grant : grantResults) {
+                if (grant != PackageManager.PERMISSION_GRANTED) {
+                    isAllGranted = false;
+                    break;
+                }
+            }
+
+            if (isAllGranted) {
+                // 如果所有的权限都授予了, 跳转到主页
+                //  gotoHomeActivity();
+            } else {
+                // 弹出对话框告诉用户需要权限的原因, 并引导用户去应用权限管理中手动打开权限按钮
+                openAppDetails();
+            }
+        }
+    }*/
+
+
     //系统授权设置的弹框
-    android.support.v7.app.AlertDialog openAppDetDialog = null;
+    AlertDialog openAppDetDialog = null;
 
     /**
      * 打开 APP 的详情设置
      */
     private void openAppDetails() {
-        android.support.v7.app.AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage(getString(R.string.app_name) + "需要访问 \"设备信息\"、\"相册\"、\"定位\" 和 \"外部存储器\",请到 \"应用信息 -> 权限\" 中授予！");
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(getString(R.string.app_name) + getString(R.string.all_permission_required));
         builder.setPositiveButton("手动授权", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -834,7 +1031,7 @@ public class OWebActivity extends BaseActivity {
         builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                finish();
+                // finish();
             }
         });
         if (null == openAppDetDialog)
@@ -847,7 +1044,7 @@ public class OWebActivity extends BaseActivity {
     @Override
     protected void onRestart() {
         super.onRestart();
-       /* if (Build.VERSION.SDK_INT < 23) {
+        /*if (Build.VERSION.SDK_INT < 23) {
 
         } else if (!DeviceUtil.isAllGranted(this)) {
             //判断基本的应用权限
