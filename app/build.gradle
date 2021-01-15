@@ -3,10 +3,10 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 29
     defaultConfig {
-        applicationId "com.bityard.lite"
+        applicationId "com.ltxmqh.con"
         minSdkVersion 19
         targetSdkVersion 29
-        versionCode 5
+        versionCode 1
         versionName "1.0.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         flavorDimensions "1"
@@ -18,14 +18,18 @@ android {
         buildConfigField "String", "AK", '"AtGlf0AeZaZGVWH9iwFKboyp"'//百度AI AK
         buildConfigField "String", "SK", '"Fiq4CgzCxeKzal8VKAxj7DgbzAXoKVkH"'//百度AI SK
         buildConfigField "String", "WEB_URL", '"https://app.bityard.com?ru=T23UFD&f=VNKL"'//马甲包地址
-        buildConfigField "String[]", "CHECKVERSION_URL_LIST", 'new String[]{"https://api.bityard.com"}'
+        buildConfigField "String[]", "CHECKVERSION_URL_LIST", 'new String[]{"https://api.wzwqh.com","https://api.xinghestar.com"}'
 //开关地址
-        buildConfigField "String[]", "BLOG_URL_LIST", 'new String[]{"", ""}'
+        buildConfigField "String[]", "BLOG_URL_LIST", 'new String[]{"http://blog.sina.com.cn/s/blog_b01197b40102y4x9.html", "https://blog.csdn.net/weixin_45325759/article/details/95075283"}'
 //博客地址
         buildConfigField "String", "STAY_UM_KEY", '"5becd904f1f556f0f9000133"'//友盟统计的 KEY
 
 
         productFlavors {
+            universial {
+                buildConfigField "String", "QUDAO", '"npxmqhhw"'
+            }
+
             qh360 {
                 buildConfigField "String", "QUDAO", '"ltqh"'
             }

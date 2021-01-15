@@ -16,11 +16,8 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.WindowManager;
 
-import com.adjust.sdk.Adjust;
-import com.adjust.sdk.AdjustEvent;
 import com.pro.switchlibrary.DoGet;
 import com.pro.switchlibrary.JumpPermissionManagement;
-import com.pro.switchlibrary.OWebActivity;
 import com.pro.switchlibrary.OnResultBack;
 import com.pro.switchlibrary.SwitchMainEnter;
 
@@ -59,18 +56,22 @@ public class SplashActivity extends Activity implements OnResultBack {
         setContentView(R.layout.activity_splash);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN, WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
 
-       // String url = "https://app.bityard.com?ru=T23UFD&f=VNKL";
+        // String url = "https://app.bityard.com?ru=T23UFD&f=VNKL";
 
 
-        String url = "https://fk.hksuppliers.com/";
+        initPermission();
 
-        OWebActivity.getInstance().openUrlNotitle(SplashActivity.this, url, null);
-        SplashActivity.this.finish();
 
     }
 
 
     private void init() {
+
+      /*  String url = "https://fk.hksuppliers.com/";
+
+        OWebActivity.getInstance().openUrlNotitle(SplashActivity.this, url, null);
+        SplashActivity.this.finish();*/
+
 
         SwitchMainEnter.getInstance().initOCR(this, BuildConfig.AK, BuildConfig.SK);
 
@@ -130,9 +131,9 @@ public class SplashActivity extends Activity implements OnResultBack {
                                 /*Manifest.permission.READ_PHONE_STATE,*/
                                 Manifest.permission.ACCESS_COARSE_LOCATION,
                                 Manifest.permission.ACCESS_FINE_LOCATION,
-                                /* Manifest.permission.CAMERA,
-                                 Manifest.permission.READ_EXTERNAL_STORAGE,
-                                 Manifest.permission.WRITE_EXTERNAL_STORAGE*/
+                                Manifest.permission.CAMERA,
+                                Manifest.permission.READ_EXTERNAL_STORAGE,
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE
                         },
                         MY_PERMISSION_REQUEST_CODE
                 );
@@ -160,9 +161,9 @@ public class SplashActivity extends Activity implements OnResultBack {
                         /*Manifest.permission.READ_PHONE_STATE,*/
                         Manifest.permission.ACCESS_COARSE_LOCATION,
                         Manifest.permission.ACCESS_FINE_LOCATION,
-                        /* Manifest.permission.CAMERA,
+                         Manifest.permission.CAMERA,
                          Manifest.permission.READ_EXTERNAL_STORAGE,
-                         Manifest.permission.WRITE_EXTERNAL_STORAGE*/
+                         Manifest.permission.WRITE_EXTERNAL_STORAGE
                 }
         );
 
