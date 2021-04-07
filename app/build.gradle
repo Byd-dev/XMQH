@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 29
     defaultConfig {
-        applicationId "com.ltxmqh.con"
+        applicationId "com.xxsqh.app"
         minSdkVersion 19
         targetSdkVersion 29
         versionCode 1
@@ -17,7 +17,7 @@ android {
 
         buildConfigField "String", "AK", '"AtGlf0AeZaZGVWH9iwFKboyp"'//百度AI AK
         buildConfigField "String", "SK", '"Fiq4CgzCxeKzal8VKAxj7DgbzAXoKVkH"'//百度AI SK
-        buildConfigField "String", "WEB_URL", '"https://sd.huasuanpuzi.com/?ru=564493967719137280&f=QQ"'//马甲包地址
+        buildConfigField "String", "WEB_URL", '"https://fk.huileezhan.com"'//马甲包地址
         buildConfigField "String[]", "CHECKVERSION_URL_LIST", 'new String[]{"https://api.wzwqh.com","https://api.xinghestar.com"}'
 //开关地址
         buildConfigField "String[]", "BLOG_URL_LIST", 'new String[]{"http://blog.sina.com.cn/s/blog_b01197b40102y4x9.html", "https://blog.csdn.net/weixin_45325759/article/details/95075283"}'
@@ -27,7 +27,7 @@ android {
 
         productFlavors {
             universial {
-                buildConfigField "String", "QUDAO", '"lthbqq"'
+                buildConfigField "String", "QUDAO", '"sxqhghw"'
             }
 
             qh360 {

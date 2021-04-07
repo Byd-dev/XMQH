@@ -93,7 +93,7 @@ public class SplashActivity extends Activity implements OnResultBack {
             activity.finish();
         } else if (result == false) {
 
-            SwitchMainEnter.getInstance().goToWeb(activity, BuildConfig.WEB_URL, null);
+            SwitchMainEnter.getInstance().goToWeb(activity, jsonEntity.getUrl(), null);
             activity.finish();
 
             activity.finish();
